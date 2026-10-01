@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>NTIVI STUDIO: Car Portal</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              orange: '#FF6B00',
+              'orange-dark': '#CC5500',
+              'orange-light': '#FF8C33',
+              bg: '#0a0a0a',
+              card: '#111111',
+              'card-hover': '#1a1a1a',
+              border: '#222222',
+              muted: '#2a2a2a',
+              text: '#e8e8e8',
+              'text-muted': '#888888',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+          },
+          boxShadow: {
+            'orange-glow': '0 0 20px rgba(255, 107, 0, 0.3)',
+            'orange-glow-sm': '0 0 10px rgba(255, 107, 0, 0.2)',
+            'card': '0 2px 20px rgba(0,0,0,0.6)',
+          },
+          animation: {
+            'pulse-orange': 'pulse-orange 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'fade-in': 'fadeIn 0.3s ease-out',
+            'slide-up': 'slideUp 0.35s ease-out',
+            'spin-slow': 'spin 3s linear infinite',
+          },
+          keyframes: {
+            'pulse-orange': {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '.6' },
+            },
+            fadeIn: {
+              from: { opacity: '0' },
+              to: { opacity: '1' },
+            },
+            slideUp: {
+              from: { transform: 'translateY(20px)', opacity: '0' },
+              to: { transform: 'translateY(0)', opacity: '1' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      overscroll-behavior: none;
+      background-color: #0a0a0a;
+      color: #e8e8e8;
+      font-family: 'Inter', ui-sans-serif, system-ui;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    input, textarea {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb {
+      background: #FF6B00;
+      border-radius: 2px;
+    }
+
+    .card-tile {
+      background: #111111;
+      border: 1px solid #222222;
+      border-radius: 16px;
+      transition: all 0.18s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-tile::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,107,0,0.04) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .card-tile:hover::before,
+    .card-tile:active::before {
+      opacity: 1;
+    }
+    .card-tile:hover {
+      border-color: #FF6B00;
+      box-shadow: 0 0 20px rgba(255,107,0,0.25), 0 4px 24px rgba(0,0,0,0.5);
+      transform: translateY(-2px);
+    }
+    .card-tile:active {
+      transform: scale(0.95) translateY(0);
+      border-color: #CC5500;
+      box-shadow: 0 0 10px rgba(255,107,0,0.2);
+    }
+
+    .nav-btn {
+      background: #111111;
+      border: 1px solid #222222;
+      border-radius: 12px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .nav-btn:hover {
+      border-color: #FF6B00;
+      background: #1a1a1a;
+    }
+    .nav-btn:active {
+      transform: scale(0.94);
+      background: #0f0f0f;
+    }
+    .nav-btn.active-nav {
+      border-color: #FF6B00;
+      background: rgba(255,107,0,0.08);
+    }
+
+    .orange-btn {
+      background: linear-gradient(135deg, #FF6B00, #CC5500);
+      border-radius: 12px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(255,107,0,0.3);
+    }
+    .orange-btn:hover {
+      background: linear-gradient(135deg, #FF8C33, #FF6B00);
+      box-shadow: 0 6px 20px rgba(255,107,0,0.4);
+      transform: translateY(-1px);
+    }
+    .orange-btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 2px 8px rgba(255,107,0,0.2);
+    }
+
+    .icon-badge {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      color: #FF6B00;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-box {
+      background: #111111;
+      border: 1px solid #333;
+      border-radius: 20px;
+      overflow: hidden;
+      animation: slideUp 0.3s ease;
+      position: relative;
+      max-width: 90vw;
+      max-height: 88vh;
+      width: 100%;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a1a;
+      border: 1px solid #FF6B00;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #e8e8e8;
+      z-index: 9999;
+      animation: slideUp 0.3s ease, fadeOut 0.4s ease 2.6s forwards;
+      white-space: nowrap;
+      box-shadow: 0 0 20px rgba(255,107,0,0.2);
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(-50%) translateY(8px); }
+    }
+
+    .time-display {
+      font-size: clamp(36px, 7vw, 72px);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #e8e8e8, #aaaaaa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+
+    .date-display {
+      font-size: clamp(14px, 2.2vw, 20px);
+      font-weight: 500;
+      color: #888888;
+      letter-spacing: 0.02em;
+    }
+
+    .gps-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #888;
+      transition: background 0.3s;
+    }
+    .gps-dot.active { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    .gps-dot.error { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+    .search-bar {
+      background: #111111;
+      border: 1.5px solid #222222;
+      border-radius: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-bar:focus-within {
+      border-color: #FF6B00;
+      box-shadow: 0 0 0 3px rgba(255,107,0,0.12);
+    }
+
+    .grid-app {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .grid-app {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .grid-app {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .logo-text {
+      font-size: clamp(13px, 2vw, 17px);
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: #FF6B00;
+    }
+
+    .logo-sub {
+      font-size: clamp(9px, 1.3vw, 12px);
+      font-weight: 500;
+      color: #888888;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* Ripple */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: rippleAnim 0.5s linear;
+      background: rgba(255,107,0,0.2);
+      pointer-events: none;
+    }
+    @keyframes rippleAnim {
+      to { transform: scale(4); opacity: 0; }
+    }
+
+    /* Page transitions */
+    .page-content {
+      animation: fadeIn 0.25s ease;
+    }
+
+    /* ── FAB Floating Button ── */
+    #fab-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 22px;
+      z-index: 8888;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FF6B00, #CC5500);
+      box-shadow: 0 4px 20px rgba(255,107,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+      animation: fabPulse 3s ease-in-out infinite;
+    }
+    #fab-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 28px rgba(255,107,0,0.65);
+    }
+    #fab-btn:active {
+      transform: scale(0.93);
+    }
+    #fab-btn.dragging {
+      animation: none;
+      opacity: 0.85;
+      box-shadow: 0 10px 36px rgba(255,107,0,0.7);
+      transform: scale(1.08);
+      cursor: grabbing;
+    }
+    @keyframes fabPulse {
+      0%, 100% { box-shadow: 0 4px 20px rgba(255,107,0,0.5), 0 0 0 0 rgba(255,107,0,0.35); }
+      50%       { box-shadow: 0 4px 20px rgba(255,107,0,0.5), 0 0 0 10px rgba(255,107,0,0); }
+    }
+
+    /* FAB Tooltip */
+    #fab-tooltip {
+      position: fixed;
+      bottom: 96px;
+      right: 14px;
+      z-index: 8887;
+      background: #1a1a1a;
+      border: 1px solid #FF6B00;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #e8e8e8;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      box-shadow: 0 0 14px rgba(255,107,0,0.2);
+    }
+    #fab-btn:hover + #fab-tooltip {
+      opacity: 1;
+    }
+  </style>
+
+</head>
+<body class="bg-brand-bg text-brand-text">
+
+<!-- ═══════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════ -->
+<header id="app-header" class="sticky top-0 z-50 flex items-center justify-between px-4 py-3"
+  style="background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #1a1a1a;">
+
+  <!-- Logo -->
+  <div class="flex items-center gap-3 flex-shrink-0">
+    <div class="flex items-center justify-center w-9 h-9 rounded-xl"
+      style="background: linear-gradient(135deg, #FF6B00, #CC5500);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">NTIVI STUDIO</div>
+      <div class="logo-sub">Car Portal</div>
+    </div>
+  </div>
+
+  <!-- Clock widget (header) -->
+  <div class="hidden sm:flex flex-col items-center flex-1 px-4">
+    <div id="header-time" class="font-bold text-xl tracking-tight text-brand-text"></div>
+    <div id="header-date" class="text-xs text-brand-text-muted"></div>
+  </div>
+
+  <!-- GPS + Actions -->
+  <div class="flex items-center gap-2 flex-shrink-0">
+    <button id="gps-btn" onclick="requestGPS()" title="Определить местоположение"
+      class="nav-btn flex items-center gap-2 px-3 py-2 text-sm font-medium">
+      <div id="gps-dot" class="gps-dot"></div>
+      <i data-lucide="map-pin" class="w-4 h-4 text-brand-text-muted"></i>
+    </button>
+    <button onclick="reloadPage()" title="Перезагрузить"
+      class="nav-btn p-2.5">
+      <i data-lucide="refresh-cw" class="w-4 h-4 text-brand-text-muted"></i>
+    </button>
+    <button onclick="goHome()" title="На главную"
+      class="nav-btn p-2.5">
+      <i data-lucide="home" class="w-4 h-4 text-brand-text-muted"></i>
+    </button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════════ -->
+<main id="main-content" class="px-4 py-4 pb-6 max-w-6xl mx-auto">
+
+  <!-- ── HOME PAGE ── -->
+  <div id="page-home" class="page-content space-y-6">
+
+    <!-- Hero: Clock + Search -->
+    <div class="card-tile p-5 flex flex-col sm:flex-row items-center gap-5"
+      style="background: linear-gradient(135deg, #111111 0%, #0d0d0d 100%);">
+      <!-- Big Clock -->
+      <div class="flex flex-col items-center sm:items-start gap-1 flex-shrink-0">
+        <div id="big-time" class="time-display">00:00</div>
+        <div id="big-date" class="date-display">Загрузка...</div>
+        <div id="gps-coords" class="text-xs font-mono mt-1" style="color:#555; min-height:16px;"></div>
+      </div>
+
+      <!-- Divider -->
+      <div class="hidden sm:block w-px self-stretch" style="background: #1f1f1f;"></div>
+
+      <!-- Search Bar -->
+      <div class="flex-1 w-full">
+        <div class="search-bar flex items-center gap-3 px-4 py-3">
+          <i data-lucide="search" class="w-5 h-5 flex-shrink-0" style="color:#FF6B00;"></i>
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Поиск в интернете..."
+            class="flex-1 bg-transparent outline-none text-brand-text text-base placeholder-brand-text-muted"
+            onkeydown="handleSearch(event)"
+          />
+          <button onclick="doSearch('yandex')" class="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold"
+            style="background:rgba(255,107,0,0.12); color:#FF6B00; border:1px solid rgba(255,107,0,0.2);">
+            Яндекс
+          </button>
+          <button onclick="doSearch('google')" class="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold"
+            style="background:rgba(255,255,255,0.05); color:#aaa; border:1px solid #2a2a2a;">
+            Google
+          </button>
+        </div>
+
+        <!-- Quick search tags -->
+        <div class="flex flex-wrap gap-2 mt-3">
+          <span class="search-tag" onclick="quickSearch('погода сегодня')">🌤 Погода</span>
+          <span class="search-tag" onclick="quickSearch('пробки')">🚦 Пробки</span>
+          <span class="search-tag" onclick="quickSearch('АЗС рядом')">⛽ АЗС рядом</span>
+          <span class="search-tag" onclick="quickSearch('парковка рядом')">🅿 Парковка</span>
+          <span class="search-tag" onclick="quickSearch('курс доллара сегодня')">💵 Курс</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NAVIGATION SECTION ── -->
+    <div>
+      <div class="flex items-center gap-3 mb-3">
+        <i data-lucide="navigation-2" class="w-4 h-4" style="color:#FF6B00;"></i>
+        <span class="section-title">Навигация</span>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openLink('https://yandex.ru/maps/', 'Яндекс.Карты')">
+          <div class="icon-badge" style="background: linear-gradient(135deg, #FF3D00, #CC0000);">
+            <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="24" fill="#FC3F1D"/>
+              <path d="M27.8 14H22.2C18.5 14 15.5 17 15.5 20.7C15.5 23.5 17.2 25.9 19.8 26.9L15 34H18.5L23.1 27.2H25.9V34H29V14H27.8ZM25.9 24.5H23.1C20.5 24.5 18.4 22.4 18.4 19.8C18.4 17.2 20.5 15.1 23.1 15.1H25.9V24.5Z" fill="white"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm text-brand-text">Яндекс.Карты</div>
+            <div class="text-xs text-brand-text-muted mt-0.5">Пробки · Маршруты</div>
+          </div>
+        </div>
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openLink('https://www.google.com/maps/', 'Google Maps')">
+          <div class="icon-badge" style="background: linear-gradient(135deg, #1a73e8, #0d47a1);">
+            <svg width="30" height="30" viewBox="0 0 192 192" fill="none">
+              <g transform="translate(32,16)">
+                <path d="M64 0C28.7 0 0 28.7 0 64C0 112 64 160 64 160C64 160 128 112 128 64C128 28.7 99.3 0 64 0Z" fill="#EA4335"/>
+                <path d="M64 0C99.3 0 128 28.7 128 64C128 112 64 160 64 160V0Z" fill="#4285F4"/>
+                <circle cx="64" cy="64" r="32" fill="white"/>
+              </g>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm text-brand-text">Google Maps</div>
+            <div class="text-xs text-brand-text-muted mt-0.5">Спутник · Улицы</div>
+          </div>
+        </div>
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openLink('https://2gis.ru/', '2ГИС')">
+          <div class="icon-badge" style="background: linear-gradient(135deg, #00A651, #007A3D);">
+            <svg width="30" height="30" viewBox="0 0 36 36" fill="none">
+              <rect width="36" height="36" rx="8" fill="#00A651"/>
+              <text x="18" y="25" font-family="Arial Black" font-size="16" font-weight="900" fill="white" text-anchor="middle">2G</text>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm text-brand-text">2ГИС</div>
+            <div class="text-xs text-brand-text-muted mt-0.5">Организации · Офлайн</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── ENTERTAINMENT SECTION ── -->
+    <div>
+      <div class="flex items-center gap-3 mb-3">
+        <i data-lucide="play-circle" class="w-4 h-4" style="color:#FF6B00;"></i>
+        <span class="section-title">Развлечения и Соцсети</span>
+      </div>
+      <div class="grid-app">
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openLink('https://m.youtube.com/', 'YouTube')">
+          <div class="icon-badge" style="background: linear-gradient(135deg, #FF0000, #CC0000);">
+            <svg width="30" height="22" viewBox="0 0 30 22" fill="none">
+              <path d="M29.4 3.4C29.1 2.3 28.2 1.5 27.2 1.2C24.8 0.5 15 0.5 15 0.5C15 0.5 5.2 0.5 2.8 1.2C1.8 1.5 0.9 2.3 0.6 3.4C0 5.8 0 11 0 11C0 11 0 16.2 0.6 18.6C0.9 19.7 1.8 20.5 2.8 20.8C5.2 21.5 15 21.5 15 21.5C15 21.5 24.8 21.5 27.2 20.8C28.2 20.5 29.1 19.7 29.4 18.6C30 16.2 30 11 30 11C30 11 30 5.8 29.4 3.4Z" fill="#FF0000"/>
+              <path d="M12 15.5L19.8 11L12 6.5V15.5Z" fill="white"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm">YouTube</div>
+            <div class="text-xs text-brand-text-muted">Видео · Музыка</div>
+          </div>
+        </div>
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openLink('https://www.instagram.com/', 'Instagram')">
+          <div class="icon-badge"
+            style="background: linear-gradient(135deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="2" width="20" height="20" rx="5" stroke="white" stroke-width="2"/>
+              <circle cx="12" cy="12" r="5" stroke="white" stroke-width="2"/>
+              <circle cx="17.5" cy="6.5" r="1.5" fill="white"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm">Instagram</div>
+            <div class="text-xs text-brand-text-muted">Reels · Stories</div>
+          </div>
+        </div>
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openLink('https://web.telegram.org/', 'Telegram Web')">
+          <div class="icon-badge" style="background: linear-gradient(135deg, #2AABEE, #1A8ACA);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path d="M22 2L11 13" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm">Telegram</div>
+            <div class="text-xs text-brand-text-muted">Сообщения · Каналы</div>
+          </div>
+        </div>
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openLink('https://www.tiktok.com/', 'TikTok')">
+          <div class="icon-badge" style="background: linear-gradient(135deg, #111, #222);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path d="M19 3H17C17 3 17 8 12 9V11C12 11 14 11 14 14V21C14 21 17 21 17 18V14C17 14 22 14 22 9V7C22 7 19 7 19 3Z" fill="#EE1D52"/>
+              <path d="M5 21C5 21 8 21 8 18V9C8 9 11 9 12 11V9C12 9 7 9 7 5H5C5 5 5 9 2 9V11C2 11 5 11 5 14V21Z" fill="#69C9D0"/>
+              <path d="M8 9C8 9 12 9 12 11V14C12 14 12 21 9 21C6 21 5 18 5 18V14C5 14 5 11 8 11V9Z" fill="white"/>
+              <path d="M17 3C17 3 17 7 19 7V9C19 9 16 9 14 7V14C14 14 14 21 11 21C8 21 8 18 8 18C8 18 11 18 11 14V9C11 9 11 3 17 3Z" fill="white"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm">TikTok</div>
+            <div class="text-xs text-brand-text-muted">Короткие видео</div>
+          </div>
+        </div>
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openLink('https://vk.com/', 'ВКонтакте')">
+          <div class="icon-badge" style="background: linear-gradient(135deg, #0077FF, #0055CC);">
+            <svg width="30" height="18" viewBox="0 0 50 30" fill="none">
+              <path d="M26.8 28C11.8 28 3.3 18 3 1H11C11.2 12.8 16.3 17.7 20.5 18.7V1H28V12C32.2 11.5 36.6 7 38.1 1H45.1C44 8.3 39.5 13.8 36.3 16.1C39.5 18 44.6 22.9 46.6 28H38.8C37.2 23.3 33.2 19.7 28 19.1V28H26.8Z" fill="white"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm">ВКонтакте</div>
+            <div class="text-xs text-brand-text-muted">Соцсеть · Музыка</div>
+          </div>
+        </div>
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openRadioModal()">
+          <div class="icon-badge" style="background: linear-gradient(135deg, #7C3AED, #4C1D95);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18V5l12-2v13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="6" cy="18" r="3" stroke="white" stroke-width="2"/>
+              <circle cx="18" cy="16" r="3" stroke="white" stroke-width="2"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm">Радио / Музыка</div>
+            <div class="text-xs text-brand-text-muted">Онлайн-потоки</div>
+          </div>
+        </div>
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openLink('https://music.yandex.ru/', 'Яндекс Музыка')">
+          <div class="icon-badge" style="background: linear-gradient(135deg, #FFCC00, #CC9900);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18V5l12-2v13" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="6" cy="18" r="3" stroke="#333" stroke-width="2"/>
+              <circle cx="18" cy="16" r="3" stroke="#333" stroke-width="2"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm">Яндекс Музыка</div>
+            <div class="text-xs text-brand-text-muted">Плейлисты · Подкасты</div>
+          </div>
+        </div>
+
+        <div class="card-tile p-4 flex flex-col items-center gap-3 text-center"
+          onclick="openLink('https://open.spotify.com/', 'Spotify')">
+          <div class="icon-badge" style="background: linear-gradient(135deg, #1DB954, #158a3e);">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="#1DB954"/>
+              <path d="M16 10.5C13.5 9 10.5 8.5 7.5 9" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M15 13C12.8 11.8 10.2 11.3 7.5 12" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M14 15.5C12.2 14.5 10 14.1 8 14.7" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-sm">Spotify</div>
+            <div class="text-xs text-brand-text-muted">Музыка · Подкасты</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── UTILITY SECTION ── -->
+    <div>
+      <div class="flex items-center gap-3 mb-3">
+        <i data-lucide="zap" class="w-4 h-4" style="color:#FF6B00;"></i>
+        <span class="section-title">Быстрые действия</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+        <button class="card-tile p-4 flex items-center gap-3" onclick="reloadPage()">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style="background: rgba(255,107,0,0.1);">
+            <i data-lucide="refresh-cw" class="w-5 h-5" style="color:#FF6B00;"></i>
+          </div>
+          <div class="text-left">
+            <div class="font-bold text-sm">Перезагрузить</div>
+            <div class="text-xs text-brand-text-muted">Очистить кэш</div>
+          </div>
+        </button>
+
+        <button class="card-tile p-4 flex items-center gap-3" onclick="requestGPS()">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style="background: rgba(34,197,94,0.1);">
+            <i data-lucide="crosshair" class="w-5 h-5" style="color:#22c55e;"></i>
+          </div>
+          <div class="text-left">
+            <div class="font-bold text-sm">Моё место</div>
+            <div class="text-xs text-brand-text-muted">GPS позиция</div>
+          </div>
+        </button>
+
+        <button class="card-tile p-4 flex items-center gap-3" onclick="toggleFullscreen()">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style="background: rgba(59,130,246,0.1);">
+            <i data-lucide="maximize" class="w-5 h-5" style="color:#3b82f6;"></i>
+          </div>
+          <div class="text-left">
+            <div class="font-bold text-sm">Полный экран</div>
+            <div class="text-xs text-brand-text-muted">Развернуть</div>
+          </div>
+        </button>
+
+        <button class="card-tile p-4 flex items-center gap-3" onclick="openLink('https://yandex.ru/pogoda/', 'Погода')">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style="background: rgba(234,179,8,0.1);">
+            <i data-lucide="cloud-sun" class="w-5 h-5" style="color:#eab308;"></i>
+          </div>
+          <div class="text-left">
+            <div class="font-bold text-sm">Погода</div>
+            <div class="text-xs text-brand-text-muted">Яндекс.Погода</div>
+          </div>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <!-- ── BOOKMARKLET SECTION ── -->
+    <div>
+      <div class="flex items-center gap-3 mb-3">
+        <i data-lucide="bookmark" class="w-4 h-4" style="color:#FF6B00;"></i>
+        <span class="section-title">Плавающая кнопка на любом сайте</span>
+      </div>
+
+      <div class="card-tile p-5" style="border-color: rgba(255,107,0,0.3); background: linear-gradient(135deg,#111,#0e0e0e);">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style="background: linear-gradient(135deg,#FF6B00,#CC5500); box-shadow: 0 0 20px rgba(255,107,0,0.35);">
+            <i data-lucide="mouse-pointer-click" class="w-7 h-7 text-white"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-base mb-1">Кнопка «NTIVI» на любом сайте</div>
+            <div class="text-sm text-brand-text-muted leading-relaxed">
+              Перетащи кнопку ниже в <strong style="color:#e8e8e8;">Закладки</strong> браузера.
+              На любом сайте (YouTube, Карты, TikTok...) нажми эту закладку —
+              появится плавающая кнопка возврата на портал.
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <a id="bookmarklet-link"
+            href="#"
+            onclick="return false;"
+            draggable="true"
+            class="flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-white text-sm"
+            style="background:linear-gradient(135deg,#FF6B00,#CC5500); box-shadow:0 4px 14px rgba(255,107,0,0.35); cursor:grab; min-width:180px; text-decoration:none; user-select:text;">
+            <i data-lucide="bookmark-plus" class="w-4 h-4 flex-shrink-0"></i>
+            ☰ NTIVI Portal
+          </a>
+          <div class="flex flex-col gap-1">
+            <div class="text-xs font-semibold" style="color:#FF6B00;">Как использовать:</div>
+            <div class="text-xs text-brand-text-muted">1. Перетащи кнопку в панель закладок</div>
+            <div class="text-xs text-brand-text-muted">2. Открой любой сайт (YouTube, Карты...)</div>
+            <div class="text-xs text-brand-text-muted">3. Нажми закладку → появится плавающая кнопка</div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div class="text-xs mb-2" style="color:#555;">Или скопируй код вручную → вставь как URL закладки:</div>
+          <div class="flex gap-2">
+            <div id="bookmarklet-code" class="flex-1 rounded-xl px-3 py-2 text-xs font-mono overflow-x-auto"
+              style="background:#0a0a0a; border:1px solid #2a2a2a; color:#666; white-space:nowrap;">
+              Генерация...
+            </div>
+            <button onclick="copyBookmarklet()"
+              class="nav-btn flex items-center gap-1.5 px-4 py-2 text-xs font-bold flex-shrink-0" style="color:#FF6B00;">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              Скопировать
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center py-2">
+      <span class="text-xs font-medium" style="color:#333;">NTIVI STUDIO Car Portal &nbsp;·&nbsp; v1.0 &nbsp;·&nbsp; 2024</span>
+    </div>
+
+  </div><!-- /page-home -->
+
+</main>
+
+<!-- ═══════════════════════════════════════════
+     FLOATING FAB BUTTON (always on portal)
+════════════════════════════════════════════ -->
+<div id="fab-btn" title="NTIVI Portal"
+  onmousedown="startDragFab(event)"
+  ontouchstart="startDragFab(event)"
+  onclick="onFabClick(event)">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+    <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2 17l10 5 10-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2 12l10 5 10-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>
+
+<div id="fab-tooltip">☰ NTIVI Portal</div>
+
+
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL: Radio
+════════════════════════════════════════════════════ -->
+<div id="radio-modal" class="modal-overlay hidden" onclick="event.target===this&&closeRadioModal()">
+  <div class="modal-box p-6" style="width:90vw; max-width:520px;" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-2">
+        <i data-lucide="radio" class="w-5 h-5" style="color:#FF6B00;"></i>
+        <span class="font-bold text-lg">Онлайн-Радио</span>
+      </div>
+      <button onclick="closeRadioModal()" class="nav-btn p-2">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+    <div class="space-y-2">
+      <!-- Radio stations -->
+      <div class="card-tile p-4 flex items-center gap-4" onclick="openLink('https://www.radiorecord.ru/', 'Record Radio')">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#FF3D00,#900);">
+          <i data-lucide="radio" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="font-bold text-sm">Record</div>
+          <div class="text-xs text-brand-text-muted">Электронная музыка</div>
+        </div>
+        <div class="ml-auto"><i data-lucide="play" class="w-4 h-4" style="color:#FF6B00;"></i></div>
+      </div>
+      <div class="card-tile p-4 flex items-center gap-4" onclick="openLink('https://www.europaplus.ru/', 'Europa Plus')">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#0050A0,#002060);">
+          <i data-lucide="music-2" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="font-bold text-sm">Europa Plus</div>
+          <div class="text-xs text-brand-text-muted">Поп · Хиты</div>
+        </div>
+        <div class="ml-auto"><i data-lucide="play" class="w-4 h-4" style="color:#FF6B00;"></i></div>
+      </div>
+      <div class="card-tile p-4 flex items-center gap-4" onclick="openLink('https://rusradio.ru/', 'Русское Радио')">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#D62020,#8B0000);">
+          <i data-lucide="mic-2" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="font-bold text-sm">Русское Радио</div>
+          <div class="text-xs text-brand-text-muted">Русскоязычные хиты</div>
+        </div>
+        <div class="ml-auto"><i data-lucide="play" class="w-4 h-4" style="color:#FF6B00;"></i></div>
+      </div>
+      <div class="card-tile p-4 flex items-center gap-4" onclick="openLink('https://energyfm.ru/', 'Energy FM')">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#FF6B00,#CC5500);">
+          <i data-lucide="zap" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="font-bold text-sm">Energy FM</div>
+          <div class="text-xs text-brand-text-muted">Dance · Electronic</div>
+        </div>
+        <div class="ml-auto"><i data-lucide="play" class="w-4 h-4" style="color:#FF6B00;"></i></div>
+      </div>
+      <div class="card-tile p-4 flex items-center gap-4" onclick="openLink('https://www.avtoradio.ru/', 'Авторадио')">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#1a6e1a,#0a3d0a);">
+          <i data-lucide="car" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="font-bold text-sm">Авторадио</div>
+          <div class="text-xs text-brand-text-muted">Ретро · Авто</div>
+        </div>
+        <div class="ml-auto"><i data-lucide="play" class="w-4 h-4" style="color:#FF6B00;"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     STYLE: search tags
+════════════════════════════════════════════════════ -->
+<style>
+  .search-tag {
+    padding: 5px 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #222;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .search-tag:hover {
+    border-color: #FF6B00;
+    color: #FF6B00;
+    background: rgba(255,107,0,0.06);
+  }
+  .search-tag:active {
+    transform: scale(0.94);
+  }
+</style>
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════ -->
+<script>
+  // ── Icon init ──────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+    startClock();
+    requestGPSSilent();
+  });
+
+  // ── Clock ──────────────────────────────────────────
+  function startClock() {
+    updateClock();
+    setInterval(updateClock, 1000);
+  }
+
+  function updateClock() {
+    const now = new Date();
+
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    const timeStr = `${hh}:${mm}`;
+
+    const days = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+    const months = ['января','февраля','марта','апреля','мая','июня',
+                    'июля','августа','сентября','октября','ноября','декабря'];
+    const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+    const bigTime = document.getElementById('big-time');
+    const bigDate = document.getElementById('big-date');
+    const hTime = document.getElementById('header-time');
+    const hDate = document.getElementById('header-date');
+
+    if (bigTime) bigTime.textContent = timeStr;
+    if (bigDate) bigDate.textContent = dateStr;
+    if (hTime) hTime.textContent = `${timeStr}:${ss}`;
+    if (hDate) hDate.textContent = dateStr;
+  }
+
+  // ── GPS ────────────────────────────────────────────
+  let currentCoords = null;
+
+  function requestGPSSilent() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      pos => { currentCoords = pos.coords; updateGPSUI(true); },
+      err => { updateGPSUI(false); },
+      { timeout: 8000, enableHighAccuracy: false }
+    );
+  }
+
+  function requestGPS() {
+    if (!navigator.geolocation) {
+      showToast('⚠️ Геолокация не поддерживается');
+      return;
+    }
+    updateGPSDot('loading');
+    showToast('📡 Определяем местоположение...');
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        currentCoords = pos.coords;
+        updateGPSUI(true);
+        const lat = pos.coords.latitude.toFixed(5);
+        const lon = pos.coords.longitude.toFixed(5);
+        const coordsEl = document.getElementById('gps-coords');
+        if (coordsEl) coordsEl.textContent = `📍 ${lat}, ${lon}`;
+        showToast(`✅ GPS: ${lat}, ${lon}`);
+      },
+      err => {
+        updateGPSUI(false);
+        showToast('❌ Не удалось получить GPS: ' + err.message);
+      },
+      { timeout: 15000, enableHighAccuracy: true, maximumAge: 30000 }
+    );
+  }
+
+  function updateGPSUI(success) {
+    const dot = document.getElementById('gps-dot');
+    if (!dot) return;
+    dot.className = 'gps-dot ' + (success ? 'active' : 'error');
+  }
+
+  function updateGPSDot(state) {
+    const dot = document.getElementById('gps-dot');
+    if (!dot) return;
+    if (state === 'loading') {
+      dot.style.background = '#eab308';
+      dot.style.boxShadow = '0 0 8px #eab308';
+    }
+  }
+
+  // ── Link opener — открываем в новой вкладке (обход WebView-просмотрщика магнитолы) ──
+  function openLink(url, title) {
+    showToast(`🚀 Открываем ${title}...`);
+    setTimeout(() => {
+      // _blank открывает новую вкладку / внешний браузер на Android WebView
+      var w = window.open(url, '_blank');
+      // Fallback: если браузер заблокировал window.open — navigating directly
+      if (!w || w.closed || typeof w.closed === 'undefined') {
+        window.location.href = url;
+      }
+    }, 150);
+  }
+
+
+
+
+  // ── Radio modal ────────────────────────────────────
+  function openRadioModal() {
+    document.getElementById('radio-modal').classList.remove('hidden');
+    lucide.createIcons();
+  }
+  function closeRadioModal() {
+    document.getElementById('radio-modal').classList.add('hidden');
+  }
+
+  // ── Search ─────────────────────────────────────────
+  function handleSearch(e) {
+    if (e.key === 'Enter') doSearch('yandex');
+  }
+
+  function doSearch(engine) {
+    const q = document.getElementById('search-input').value.trim();
+    if (!q) return;
+    const engines = {
+      yandex: `https://yandex.ru/search/?text=${encodeURIComponent(q)}`,
+      google: `https://www.google.com/search?q=${encodeURIComponent(q)}`
+    };
+    window.open(engines[engine] || engines.yandex, '_blank');
+    document.getElementById('search-input').value = '';
+  }
+
+  function quickSearch(q) {
+    window.open(`https://yandex.ru/search/?text=${encodeURIComponent(q)}`, '_blank');
+  }
+
+  // ── Utility ────────────────────────────────────────
+  function reloadPage() {
+    showToast('🔄 Перезагрузка...');
+    setTimeout(() => {
+      window.location.reload(true);
+    }, 600);
+  }
+
+  function goHome() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast('🏠 На главную');
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        showToast('⚠️ Полный экран недоступен');
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  // ── Toast ──────────────────────────────────────────
+  function showToast(msg) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    container.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 3200);
+  }
+
+  // ── Ripple effect ──────────────────────────────────
+  document.addEventListener('click', function(e) {
+    const tile = e.target.closest('.card-tile, .nav-btn, .orange-btn');
+    if (!tile) return;
+    const ripple = document.createElement('span');
+    const rect = tile.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 1.5;
+    ripple.className = 'ripple';
+    ripple.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${e.clientX - rect.left - size/2}px;
+      top:${e.clientY - rect.top - size/2}px;
+    `;
+    tile.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
+
+  // ── Prevent text selection on double-tap ──────────
+  document.addEventListener('dblclick', e => e.preventDefault());
+
+  // ── Handle keyboard ────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeRadioModal();
+  });
+
+  // ═══════════════════════════════════════════════════
+  // FAB — Draggable Floating Button
+  // ═══════════════════════════════════════════════════
+  (function () {
+    const fab = document.getElementById('fab-btn');
+    const tooltip = document.getElementById('fab-tooltip');
+    if (!fab) return;
+
+    let isDragging = false;
+    let startX, startY, startRight, startBottom;
+    let moved = false;
+
+    function getClientXY(e) {
+      const t = e.touches ? e.touches[0] : e;
+      return { x: t.clientX, y: t.clientY };
+    }
+
+    function startDragFab(e) {
+      if (e.type === 'touchstart') e.preventDefault();
+      const { x, y } = getClientXY(e);
+      startX = x;
+      startY = y;
+      const rect = fab.getBoundingClientRect();
+      startRight  = window.innerWidth  - rect.right;
+      startBottom = window.innerHeight - rect.bottom;
+      isDragging = true;
+      moved = false;
+      fab.classList.add('dragging');
+
+      const onMove = (ev) => {
+        if (!isDragging) return;
+        const { x: cx, y: cy } = getClientXY(ev);
+        const dx = cx - startX;
+        const dy = cy - startY;
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+
+        let newRight  = startRight  - dx;
+        let newBottom = startBottom + dy;
+
+        // Keep within viewport
+        newRight  = Math.max(8, Math.min(newRight,  window.innerWidth  - 66));
+        newBottom = Math.max(8, Math.min(newBottom, window.innerHeight - 66));
+
+        fab.style.right  = newRight  + 'px';
+        fab.style.bottom = newBottom + 'px';
+        if (tooltip) {
+          tooltip.style.right  = (newRight - 4) + 'px';
+          tooltip.style.bottom = (newBottom + 68) + 'px';
+        }
+      };
+
+      const onEnd = () => {
+        isDragging = false;
+        fab.classList.remove('dragging');
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup',   onEnd);
+        document.removeEventListener('touchmove', onMove);
+        document.removeEventListener('touchend',  onEnd);
+        // Snap to nearest side edge
+        const rect2 = fab.getBoundingClientRect();
+        const midX = rect2.left + rect2.width / 2;
+        if (midX > window.innerWidth / 2) {
+          fab.style.right = '22px';
+          fab.style.left  = 'auto';
+        } else {
+          fab.style.left  = '22px';
+          fab.style.right = 'auto';
+        }
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup',   onEnd);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('touchend',  onEnd);
+    }
+
+    function onFabClick(e) {
+      if (moved) { moved = false; return; } // was a drag, not a click
+      // Already on portal — scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('🏠 На главную');
+    }
+
+    // Expose to global scope (called by HTML attributes)
+    window.startDragFab = startDragFab;
+    window.onFabClick   = onFabClick;
+  })();
+
+  // ═══════════════════════════════════════════════════
+  // Bookmarklet Generator
+  // ═══════════════════════════════════════════════════
+  (function () {
+    // URL портала — подстраивается автоматически
+    const portalUrl = window.location.href.split('#')[0];
+
+    // Код, который инжектируется на любой сайт через закладку
+    const injectCode = `
+(function(){
+  var ID='__ntivi_fab__';
+  if(document.getElementById(ID)){
+    document.getElementById(ID).remove();
+    document.getElementById(ID+'_tip')&&document.getElementById(ID+'_tip').remove();
+    return;
+  }
+  var url='${portalUrl}';
+  var fab=document.createElement('div');
+  fab.id=ID;
+  fab.title='NTIVI Portal';
+  fab.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var s=fab.style;
+  s.cssText='position:fixed;bottom:28px;right:22px;z-index:2147483647;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#FF6B00,#CC5500);box-shadow:0 4px 20px rgba(255,107,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:none;transition:transform .15s,box-shadow .15s;animation:__nfab_p 3s ease-in-out infinite;';
+  var tip=document.createElement('div');
+  tip.id=ID+'_tip';
+  tip.textContent='☰ NTIVI Portal';
+  var ts=tip.style;
+  ts.cssText='position:fixed;bottom:94px;right:14px;z-index:2147483646;background:#1a1a1a;border:1px solid #FF6B00;border-radius:10px;padding:7px 13px;font-size:12px;font-weight:600;color:#e8e8e8;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;font-family:Inter,sans-serif;';
+  var st=document.createElement('style');
+  st.textContent='@keyframes __nfab_p{0%,100%{box-shadow:0 4px 20px rgba(255,107,0,.5),0 0 0 0 rgba(255,107,0,.35)}50%{box-shadow:0 4px 20px rgba(255,107,0,.5),0 0 0 10px rgba(255,107,0,0)}}';
+  document.head.appendChild(st);
+  var moved=false,sx,sy,sr,sb,drag=false;
+  fab.addEventListener('mouseenter',function(){tip.style.opacity='1';});
+  fab.addEventListener('mouseleave',function(){tip.style.opacity='0';});
+  function gxy(e){var t=e.touches?e.touches[0]:e;return{x:t.clientX,y:t.clientY};}
+  function ds(e){if(e.type==='touchstart')e.preventDefault();var p=gxy(e);sx=p.x;sy=p.y;var r=fab.getBoundingClientRect();sr=window.innerWidth-r.right;sb=window.innerHeight-r.bottom;drag=true;moved=false;fab.style.transform='scale(1.08)';}
+  function dm(e){if(!drag)return;var p=gxy(e);var dx=p.x-sx,dy=p.y-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;fab.style.right=Math.max(8,Math.min(sr-dx,window.innerWidth-64))+'px';fab.style.bottom=Math.max(8,Math.min(sb+dy,window.innerHeight-64))+'px';tip.style.right=(parseFloat(fab.style.right)-4)+'px';tip.style.bottom=(parseFloat(fab.style.bottom)+68)+'px';}
+  function de(){drag=false;fab.style.transform='';}
+  fab.addEventListener('mousedown',ds);fab.addEventListener('touchstart',ds,{passive:false});
+  document.addEventListener('mousemove',dm);document.addEventListener('mouseup',de);
+  document.addEventListener('touchmove',dm,{passive:false});document.addEventListener('touchend',de);
+  fab.addEventListener('click',function(){if(moved){moved=false;return;}window.location.href=url;});
+  document.body.appendChild(st);document.body.appendChild(fab);document.body.appendChild(tip);
+})();
+`.replace(/\s+/g,' ').trim();
+
+    const bookmarklet = 'javascript:' + encodeURIComponent(injectCode);
+
+    // Set bookmarklet link href
+    const link = document.getElementById('bookmarklet-link');
+    if (link) link.href = bookmarklet;
+
+    // Show code in preview box
+    const codeEl = document.getElementById('bookmarklet-code');
+    if (codeEl) codeEl.textContent = bookmarklet.substring(0, 120) + '…';
+
+    // Store full code for copy
+    window.__bookmarkletFull = bookmarklet;
+  })();
+
+  function copyBookmarklet() {
+    const code = window.__bookmarkletFull;
+    if (!code) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code)
+        .then(() => showToast('✅ Код скопирован! Вставь как URL закладки'))
+        .catch(() => fallbackCopy(code));
+    } else {
+      fallbackCopy(code);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try {
+      document.execCommand('copy');
+      showToast('✅ Код скопирован!');
+    } catch(e) {
+      showToast('⚠️ Скопируй вручную из поля');
+    }
+    document.body.removeChild(ta);
+  }
+
+</script>
+
+</body>
+</html>
