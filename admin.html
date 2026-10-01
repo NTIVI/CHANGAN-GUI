@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>NTIVI STUDIO — Админ-панель</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #080808;
+      color: #e8e8e8;
+      font-family: 'Inter', ui-sans-serif, system-ui;
+      min-height: 100vh;
+    }
+    .orange-gradient {
+      background: linear-gradient(135deg, #FF6B00, #CC5500);
+    }
+    .card {
+      background: #111111;
+      border: 1px solid #222222;
+      border-radius: 16px;
+    }
+    .card-hover:hover {
+      border-color: #FF6B00;
+      box-shadow: 0 0 15px rgba(255, 107, 0, 0.2);
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .btn-orange {
+      background: linear-gradient(135deg, #FF6B00, #CC5500);
+      color: #fff;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 10px 18px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-orange:hover {
+      background: linear-gradient(135deg, #FF8C33, #FF6B00);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(255, 107, 0, 0.35);
+    }
+    .btn-orange:active {
+      transform: scale(0.97);
+    }
+    .btn-secondary {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #e8e8e8;
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover {
+      border-color: #FF6B00;
+      color: #FF6B00;
+      background: rgba(255,107,0,0.06);
+    }
+    .nav-tab {
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-tab.active {
+      background: rgba(255, 107, 0, 0.15);
+      border-color: #FF6B00;
+      color: #FF6B00;
+    }
+    .nav-tab:not(.active) {
+      color: #888;
+    }
+    .nav-tab:not(.active):hover {
+      color: #fff;
+      background: #161616;
+    }
+    .table-row {
+      border-bottom: 1px solid #1c1c1c;
+      transition: background 0.15s;
+    }
+    .table-row:hover {
+      background: rgba(255, 107, 0, 0.03);
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+  </style>
+</head>
+<body class="p-3 sm:p-6">
+
+  <!-- ==========================================
+       1. LOGIN OVERLAY (Locked Screen)
+       ========================================== -->
+  <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0a0a]">
+    <div class="card p-6 sm:p-8 w-full max-w-md border border-[#2a2a2a] shadow-2xl relative">
+      <!-- Glow -->
+      <div class="absolute -top-12 -left-12 w-32 h-32 bg-[#FF6B00] opacity-15 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-11 h-11 rounded-xl orange-gradient flex items-center justify-center shadow-lg shadow-orange-500/20">
+          <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-white tracking-wide">NTIVI STUDIO</h1>
+          <p class="text-xs font-semibold text-[#FF6B00] uppercase tracking-wider">Панель управления доступом</p>
+        </div>
+      </div>
+
+      <div id="login-error" class="hidden mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium"></div>
+      <div id="login-lockout" class="hidden mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-medium"></div>
+
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#888] mb-1.5">Логин</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-3.5 text-[#666]"></i>
+            <input
+              id="input-login"
+              type="text"
+              required
+              autocomplete="username"
+              placeholder="Введите логин"
+              class="w-full bg-[#161616] border border-[#2a2a2a] focus:border-[#FF6B00] focus:outline-none rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#555] transition"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#888] mb-1.5">Пароль</label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-[#666]"></i>
+            <input
+              id="input-password"
+              type="password"
+              required
+              autocomplete="current-password"
+              placeholder="Введите пароль"
+              class="w-full bg-[#161616] border border-[#2a2a2a] focus:border-[#FF6B00] focus:outline-none rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#555] transition"
+            />
+          </div>
+        </div>
+
+        <button
+          id="btn-login-submit"
+          type="submit"
+          class="btn-orange w-full py-3.5 text-sm mt-2 shadow-lg shadow-orange-500/25"
+        >
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span>Войти в систему</span>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-4 border-t border-[#1f1f1f] text-center">
+        <p class="text-xs text-[#555]">Защита от перебора паролей (Brute-Force & DDoS) активна</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       2. MAIN ADMIN DASHBOARD
+       ========================================== -->
+  <div id="dashboard-view" class="hidden max-w-6xl mx-auto space-y-6">
+
+    <!-- Top Header -->
+    <header class="card p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 border-[#222]">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl orange-gradient flex items-center justify-center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-extrabold text-white tracking-wide">NTIVI STUDIO</h1>
+            <span class="badge bg-[#FF6B00]/15 text-[#FF6B00] border border-[#FF6B00]/30">ADMIN</span>
+          </div>
+          <p class="text-xs text-[#888]">Changan / Qiyuan Access Management</p>
+        </div>
+      </div>
+
+      <!-- Header actions -->
+      <div class="flex items-center gap-2.5">
+        <a href="/" target="_blank" class="btn-secondary flex items-center gap-1.5" title="Перейти на клиентский портал">
+          <i data-lucide="external-link" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Открыть сайт</span>
+        </a>
+        <button onclick="loadAdminData(true)" class="btn-secondary flex items-center gap-1.5" title="Обновить данные">
+          <i data-lucide="refresh-cw" id="refresh-icon" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Обновить</span>
+        </button>
+        <button onclick="handleLogout()" class="btn-secondary text-red-400 hover:text-red-300 hover:border-red-500/40 flex items-center gap-1.5">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span>Выйти</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="card p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center flex-shrink-0">
+          <i data-lucide="users" class="w-6 h-6 text-[#FF6B00]"></i>
+        </div>
+        <div>
+          <div class="text-2xl font-black text-white" id="stat-total">0</div>
+          <div class="text-xs font-semibold text-[#888]">Всего клиентов</div>
+        </div>
+      </div>
+
+      <div class="card p-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center flex-shrink-0">
+          <i data-lucide="check-circle" class="w-6 h-6 text-green-400"></i>
+        </div>
+        <div>
+          <div class="text-2xl font-black text-white" id="stat-active">0</div>
+          <div class="text-xs font-semibold text-[#888]">Активный доступ</div>
+        </div>
+      </div>
+
+      <div class="card p-4 flex items-center gap-4 cursor-pointer hover:border-[#FF6B00] transition" onclick="switchTab('requests')">
+        <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center flex-shrink-0 relative">
+          <i data-lucide="inbox" class="w-6 h-6 text-purple-400"></i>
+          <span id="requests-pulse" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-[#FF6B00] rounded-full animate-ping"></span>
+        </div>
+        <div>
+          <div class="text-2xl font-black text-white" id="stat-requests">0</div>
+          <div class="text-xs font-semibold text-[#888]">Новых заявок в поддержке</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Activation Card (По звонку) -->
+    <div class="card p-5 border-[#FF6B00]/30 bg-gradient-to-br from-[#131313] to-[#0e0e0e]">
+      <div class="flex items-center gap-2.5 mb-4">
+        <i data-lucide="phone-call" class="w-5 h-5 text-[#FF6B00]"></i>
+        <h2 class="text-sm font-bold text-white uppercase tracking-wider">Быстрая активация (Клиент звонит по номеру 8201)</h2>
+      </div>
+
+      <form id="quick-activate-form" onsubmit="handleQuickActivate(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-[#888] mb-1">Код с экрана магнитолы *</label>
+          <input
+            id="qa-code"
+            type="text"
+            required
+            maxlength="8"
+            placeholder="Напр. 7K9F2A"
+            class="w-full bg-[#181818] border border-[#2a2a2a] focus:border-[#FF6B00] rounded-xl px-3 py-2.5 text-sm uppercase font-mono font-bold text-white"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-[#888] mb-1">Имя *</label>
+          <input
+            id="qa-firstname"
+            type="text"
+            required
+            placeholder="Армен"
+            class="w-full bg-[#181818] border border-[#2a2a2a] focus:border-[#FF6B00] rounded-xl px-3 py-2.5 text-sm text-white"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-[#888] mb-1">Фамилия *</label>
+          <input
+            id="qa-lastname"
+            type="text"
+            required
+            placeholder="Саргсян"
+            class="w-full bg-[#181818] border border-[#2a2a2a] focus:border-[#FF6B00] rounded-xl px-3 py-2.5 text-sm text-white"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-[#888] mb-1">Модель машины *</label>
+          <select
+            id="qa-carmodel"
+            class="w-full bg-[#181818] border border-[#2a2a2a] focus:border-[#FF6B00] rounded-xl px-3 py-2.5 text-sm text-white font-medium"
+          >
+            <option value="Changan UNI-K">Changan UNI-K</option>
+            <option value="Changan UNI-V">Changan UNI-V</option>
+            <option value="Changan UNI-T">Changan UNI-T</option>
+            <option value="Changan CS55 Plus">Changan CS55 Plus</option>
+            <option value="Changan CS35 Plus">Changan CS35 Plus</option>
+            <option value="Changan CS75 Plus">Changan CS75 Plus</option>
+            <option value="Changan CS85">Changan CS85</option>
+            <option value="Changan CS95">Changan CS95</option>
+            <option value="Changan Alsvin">Changan Alsvin</option>
+            <option value="Changan Eado Plus">Changan Eado Plus</option>
+            <option value="Changan Lamore">Changan Lamore</option>
+            <option value="Changan Hunter Plus">Changan Hunter Plus</option>
+            <option value="Qiyuan A05">Qiyuan A05</option>
+            <option value="Qiyuan A07">Qiyuan A07</option>
+            <option value="Qiyuan Q05">Qiyuan Q05</option>
+            <option value="Deepal S07">Deepal S07</option>
+            <option value="Deepal SL03">Deepal SL03</option>
+            <option value="Другая модель">Другая модель</option>
+          </select>
+        </div>
+
+        <div class="flex items-end">
+          <button type="submit" id="btn-qa-submit" class="btn-orange w-full py-2.5 text-sm">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Активировать</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex items-center gap-2 border-b border-[#222] pb-2">
+      <button id="tab-btn-users" onclick="switchTab('users')" class="nav-tab active">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        <span>Список пользователей</span>
+        <span id="tab-count-users" class="ml-1 px-2 py-0.5 rounded-full text-xs bg-[#FF6B00]/20 text-[#FF6B00]">0</span>
+      </button>
+
+      <button id="tab-btn-requests" onclick="switchTab('requests')" class="nav-tab">
+        <i data-lucide="inbox" class="w-4 h-4"></i>
+        <span>Заявки (Поддержка)</span>
+        <span id="tab-count-requests" class="ml-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-400">0</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: USERS LIST -->
+    <div id="tab-content-users" class="space-y-4">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="relative flex-1 max-w-md">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-[#666]"></i>
+          <input
+            id="search-users"
+            type="text"
+            oninput="renderUsersTable()"
+            placeholder="Поиск по имени, коду, машине, телефону..."
+            class="w-full bg-[#131313] border border-[#2a2a2a] focus:border-[#FF6B00] rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-[#555]"
+          />
+        </div>
+      </div>
+
+      <!-- Users Container -->
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-[#161616] text-[#888] uppercase text-xs border-b border-[#222]">
+              <tr>
+                <th class="py-3 px-4">Код устройства</th>
+                <th class="py-3 px-4">Имя и Фамилия</th>
+                <th class="py-3 px-4">Модель авто</th>
+                <th class="py-3 px-4">Телефон</th>
+                <th class="py-3 px-4">Статус</th>
+                <th class="py-3 px-4 text-right">Действия</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body">
+              <tr>
+                <td colspan="6" class="text-center py-8 text-[#666]">Загрузка данных...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: REQUESTS LIST -->
+    <div id="tab-content-requests" class="hidden space-y-4">
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-[#161616] text-[#888] uppercase text-xs border-b border-[#222]">
+              <tr>
+                <th class="py-3 px-4">Дата / Время</th>
+                <th class="py-3 px-4">Код</th>
+                <th class="py-3 px-4">Клиент</th>
+                <th class="py-3 px-4">Номер телефона</th>
+                <th class="py-3 px-4 text-right">Действия</th>
+              </tr>
+            </thead>
+            <tbody id="requests-table-body">
+              <tr>
+                <td colspan="5" class="text-center py-8 text-[#666]">Загрузка заявок...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==========================================
+       MODAL: EDIT USER
+       ========================================== -->
+  <div id="edit-modal" class="modal-overlay hidden">
+    <div class="card p-6 w-full max-w-lg border-[#333] shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="edit-3" class="w-5 h-5 text-[#FF6B00]"></i>
+          <span>Редактировать пользователя</span>
+        </h3>
+        <button onclick="closeEditModal()" class="text-[#888] hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="edit-form" onsubmit="handleSaveEdit(event)" class="space-y-4">
+        <input type="hidden" id="edit-code" />
+
+        <div class="p-3 bg-[#161616] rounded-xl flex items-center justify-between border border-[#262626]">
+          <span class="text-xs text-[#888]">Код устройства:</span>
+          <span id="edit-code-display" class="font-mono font-bold text-[#FF6B00] text-sm"></span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-[#888] mb-1">Имя</label>
+            <input id="edit-firstname" type="text" required class="w-full bg-[#181818] border border-[#2a2a2a] focus:border-[#FF6B00] rounded-xl px-3 py-2 text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#888] mb-1">Фамилия</label>
+            <input id="edit-lastname" type="text" required class="w-full bg-[#181818] border border-[#2a2a2a] focus:border-[#FF6B00] rounded-xl px-3 py-2 text-sm text-white" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-[#888] mb-1">Модель машины</label>
+          <select id="edit-carmodel" class="w-full bg-[#181818] border border-[#2a2a2a] focus:border-[#FF6B00] rounded-xl px-3 py-2 text-sm text-white">
+            <option value="Changan UNI-K">Changan UNI-K</option>
+            <option value="Changan UNI-V">Changan UNI-V</option>
+            <option value="Changan UNI-T">Changan UNI-T</option>
+            <option value="Changan CS55 Plus">Changan CS55 Plus</option>
+            <option value="Changan CS35 Plus">Changan CS35 Plus</option>
+            <option value="Changan CS75 Plus">Changan CS75 Plus</option>
+            <option value="Changan CS85">Changan CS85</option>
+            <option value="Changan CS95">Changan CS95</option>
+            <option value="Changan Alsvin">Changan Alsvin</option>
+            <option value="Changan Eado Plus">Changan Eado Plus</option>
+            <option value="Changan Lamore">Changan Lamore</option>
+            <option value="Changan Hunter Plus">Changan Hunter Plus</option>
+            <option value="Qiyuan A05">Qiyuan A05</option>
+            <option value="Qiyuan A07">Qiyuan A07</option>
+            <option value="Qiyuan Q05">Qiyuan Q05</option>
+            <option value="Deepal S07">Deepal S07</option>
+            <option value="Deepal SL03">Deepal SL03</option>
+            <option value="Другая модель">Другая модель</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-[#888] mb-1">Номер телефона</label>
+          <input id="edit-phone" type="text" class="w-full bg-[#181818] border border-[#2a2a2a] focus:border-[#FF6B00] rounded-xl px-3 py-2 text-sm text-white" />
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <input type="checkbox" id="edit-active" class="w-4 h-4 accent-[#FF6B00] rounded cursor-pointer" />
+          <label for="edit-active" class="text-sm font-semibold text-white cursor-pointer">Доступ разрешён (активен)</label>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#222]">
+          <button type="button" onclick="closeEditModal()" class="btn-secondary">Отмена</button>
+          <button type="submit" id="btn-save-edit" class="btn-orange">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: APPROVE REQUEST
+       ========================================== -->
+  <div id="approve-modal" class="modal-overlay hidden">
+    <div class="card p-6 w-full max-w-lg border-[#333] shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
+          <span>Одобрить заявку доступа</span>
+        </h3>
+        <button onclick="closeApproveModal()" class="text-[#888] hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="approve-form" onsubmit="handleConfirmApprove(event)" class="space-y-4">
+        <input type="hidden" id="appr-code" />
+
+        <div class="p-3 bg-[#161616] rounded-xl space-y-1 text-sm border border-[#262626]">
+          <div class="flex justify-between"><span class="text-[#888]">Код:</span><span id="appr-code-display" class="font-mono font-bold text-[#FF6B00]"></span></div>
+          <div class="flex justify-between"><span class="text-[#888]">Клиент:</span><span id="appr-name-display" class="font-bold text-white"></span></div>
+          <div class="flex justify-between"><span class="text-[#888]">Телефон:</span><span id="appr-phone-display" class="text-white"></span></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-[#888] mb-1">Выберите модель автомобиля *</label>
+          <select id="appr-carmodel" required class="w-full bg-[#181818] border border-[#2a2a2a] focus:border-[#FF6B00] rounded-xl px-3 py-2.5 text-sm text-white">
+            <option value="Changan UNI-K">Changan UNI-K</option>
+            <option value="Changan UNI-V">Changan UNI-V</option>
+            <option value="Changan UNI-T">Changan UNI-T</option>
+            <option value="Changan CS55 Plus">Changan CS55 Plus</option>
+            <option value="Changan CS35 Plus">Changan CS35 Plus</option>
+            <option value="Changan CS75 Plus">Changan CS75 Plus</option>
+            <option value="Changan CS85">Changan CS85</option>
+            <option value="Changan CS95">Changan CS95</option>
+            <option value="Changan Alsvin">Changan Alsvin</option>
+            <option value="Changan Eado Plus">Changan Eado Plus</option>
+            <option value="Changan Lamore">Changan Lamore</option>
+            <option value="Changan Hunter Plus">Changan Hunter Plus</option>
+            <option value="Qiyuan A05">Qiyuan A05</option>
+            <option value="Qiyuan A07">Qiyuan A07</option>
+            <option value="Qiyuan Q05">Qiyuan Q05</option>
+            <option value="Deepal S07">Deepal S07</option>
+            <option value="Deepal SL03">Deepal SL03</option>
+            <option value="Другая модель">Другая модель</option>
+          </select>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#222]">
+          <button type="button" onclick="closeApproveModal()" class="btn-secondary">Отмена</button>
+          <button type="submit" id="btn-confirm-appr" class="btn-orange">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Предоставить доступ</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    let adminToken = sessionStorage.getItem('ntivi_admin_token') || '';
+    let globalUsers = [];
+    let globalRequests = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      if (adminToken) {
+        checkTokenAndLoad();
+      } else {
+        showLoginView();
+      }
+    });
+
+    function showToast(msg, type = 'info') {
+      const c = document.getElementById('toast-container');
+      const t = document.createElement('div');
+      const colors = type === 'error' ? 'bg-red-950 border-red-500 text-red-200' :
+                     type === 'success' ? 'bg-green-950 border-green-500 text-green-200' :
+                     'bg-[#1a1a1a] border-[#FF6B00] text-white';
+      t.className = `px-4 py-3 rounded-xl border text-sm font-semibold shadow-2xl flex items-center gap-2 ${colors}`;
+      t.innerHTML = `<span>${msg}</span>`;
+      c.appendChild(t);
+      setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 3500);
+    }
+
+    async function checkTokenAndLoad() {
+      try {
+        const res = await fetch('/api/admin?action=data', {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        if (res.status === 401) {
+          handleLogout();
+          return;
+        }
+        const data = await res.json();
+        if (data.success) {
+          showDashboardView();
+          processData(data);
+        } else {
+          handleLogout();
+        }
+      } catch (err) {
+        console.error(err);
+        showDashboardView();
+      }
+    }
+
+    function showLoginView() {
+      document.getElementById('login-view').classList.remove('hidden');
+      document.getElementById('dashboard-view').classList.add('hidden');
+      lucide.createIcons();
+    }
+
+    function showDashboardView() {
+      document.getElementById('login-view').classList.add('hidden');
+      document.getElementById('dashboard-view').classList.remove('hidden');
+      lucide.createIcons();
+      loadAdminData();
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const login = document.getElementById('input-login').value.trim();
+      const password = document.getElementById('input-password').value.trim();
+      const btn = document.getElementById('btn-login-submit');
+      const errBox = document.getElementById('login-error');
+      const lockBox = document.getElementById('login-lockout');
+
+      errBox.classList.add('hidden');
+      lockBox.classList.add('hidden');
+
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Проверка...`;
+      lucide.createIcons();
+
+      try {
+        const res = await fetch('/api/admin?action=login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ login, password })
+        });
+        const data = await res.json();
+
+        if (res.status === 429) {
+          lockBox.textContent = data.error;
+          lockBox.classList.remove('hidden');
+          return;
+        }
+
+        if (data.success && data.token) {
+          adminToken = data.token;
+          sessionStorage.setItem('ntivi_admin_token', adminToken);
+          showDashboardView();
+          showToast('Добро пожаловать в панель управления!', 'success');
+        } else {
+          errBox.textContent = data.error || 'Неверные данные';
+          errBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        errBox.textContent = 'Ошибка подключения к серверу';
+        errBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i> Войти в систему`;
+        lucide.createIcons();
+      }
+    }
+
+    function handleLogout() {
+      adminToken = '';
+      sessionStorage.removeItem('ntivi_admin_token');
+      showLoginView();
+      showToast('Вы вышли из системы');
+    }
+
+    async function loadAdminData(showSpinner = false) {
+      const refIcon = document.getElementById('refresh-icon');
+      if (showSpinner && refIcon) refIcon.classList.add('animate-spin');
+
+      try {
+        const res = await fetch('/api/admin?action=data', {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        if (res.status === 401) {
+          handleLogout();
+          return;
+        }
+        const data = await res.json();
+        if (data.success) {
+          processData(data);
+          if (showSpinner) showToast('Данные обновлены', 'success');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Не удалось обновить данные', 'error');
+      } finally {
+        if (refIcon) refIcon.classList.remove('animate-spin');
+      }
+    }
+
+    function processData(data) {
+      globalUsers = data.users || [];
+      globalRequests = data.requests || [];
+
+      // Stats
+      document.getElementById('stat-total').textContent = globalUsers.length;
+      document.getElementById('stat-active').textContent = globalUsers.filter(u => u.active !== false).length;
+      document.getElementById('stat-requests').textContent = globalRequests.length;
+      document.getElementById('tab-count-users').textContent = globalUsers.length;
+      document.getElementById('tab-count-requests').textContent = globalRequests.length;
+
+      const pulse = document.getElementById('requests-pulse');
+      if (globalRequests.length > 0) pulse.classList.remove('hidden');
+      else pulse.classList.add('hidden');
+
+      renderUsersTable();
+      renderRequestsTable();
+    }
+
+    function switchTab(tab) {
+      const btnUsers = document.getElementById('tab-btn-users');
+      const btnRequests = document.getElementById('tab-btn-requests');
+      const contentUsers = document.getElementById('tab-content-users');
+      const contentRequests = document.getElementById('tab-content-requests');
+
+      if (tab === 'users') {
+        btnUsers.classList.add('active');
+        btnRequests.classList.remove('active');
+        contentUsers.classList.remove('hidden');
+        contentRequests.classList.add('hidden');
+      } else {
+        btnRequests.classList.add('active');
+        btnUsers.classList.remove('active');
+        contentRequests.classList.remove('hidden');
+        contentUsers.classList.add('hidden');
+      }
+      lucide.createIcons();
+    }
+
+    // Render Users Table
+    function renderUsersTable() {
+      const tbody = document.getElementById('users-table-body');
+      const q = (document.getElementById('search-users')?.value || '').toLowerCase().trim();
+
+      const filtered = globalUsers.filter(u => {
+        if (!q) return true;
+        return (u.code || '').toLowerCase().includes(q) ||
+               (u.firstName || '').toLowerCase().includes(q) ||
+               (u.lastName || '').toLowerCase().includes(q) ||
+               (u.carModel || '').toLowerCase().includes(q) ||
+               (u.phone || '').toLowerCase().includes(q);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-[#666]">Пользователей не найдено</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(u => {
+        const isActive = u.active !== false;
+        const statusBadge = isActive
+          ? `<span class="badge bg-green-500/15 text-green-400 border border-green-500/30">Активен</span>`
+          : `<span class="badge bg-red-500/15 text-red-400 border border-red-500/30">Заблокирован</span>`;
+
+        return `
+          <tr class="table-row">
+            <td class="py-3 px-4 font-mono font-bold text-[#FF6B00]">${escapeHtml(u.code)}</td>
+            <td class="py-3 px-4 font-semibold text-white">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</td>
+            <td class="py-3 px-4 text-[#ddd]">${escapeHtml(u.carModel || 'Changan')}</td>
+            <td class="py-3 px-4 text-[#aaa] font-mono">${escapeHtml(u.phone || '—')}</td>
+            <td class="py-3 px-4">${statusBadge}</td>
+            <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+              <button onclick="openEditModal('${escapeHtml(u.code)}')" class="btn-secondary py-1 px-2.5 text-xs inline-flex items-center gap-1">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                <span>Изменить</span>
+              </button>
+              <button onclick="handleDeleteUser('${escapeHtml(u.code)}')" class="btn-secondary py-1 px-2.5 text-xs text-red-400 hover:text-red-300 inline-flex items-center gap-1">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span>Удалить</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // Render Requests Table
+    function renderRequestsTable() {
+      const tbody = document.getElementById('requests-table-body');
+      if (globalRequests.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-[#666]">Новых заявок пока нет</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = globalRequests.map(r => {
+        const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '—';
+        return `
+          <tr class="table-row">
+            <td class="py-3 px-4 text-xs text-[#888]">${dateStr}</td>
+            <td class="py-3 px-4 font-mono font-bold text-[#FF6B00]">${escapeHtml(r.code)}</td>
+            <td class="py-3 px-4 font-semibold text-white">${escapeHtml(r.firstName)} ${escapeHtml(r.lastName)}</td>
+            <td class="py-3 px-4 font-mono text-white">${escapeHtml(r.phone)}</td>
+            <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+              <button onclick="openApproveModal('${escapeHtml(r.code)}', '${escapeHtml(r.firstName)}', '${escapeHtml(r.lastName)}', '${escapeHtml(r.phone)}')" class="btn-orange py-1.5 px-3 text-xs inline-flex items-center gap-1">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                <span>Одобрить</span>
+              </button>
+              <button onclick="handleDeleteRequest('${escapeHtml(r.code)}')" class="btn-secondary py-1.5 px-3 text-xs text-red-400 inline-flex items-center gap-1">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                <span>Отклонить</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // Quick Activate (По звонку)
+    async function handleQuickActivate(e) {
+      e.preventDefault();
+      const code = document.getElementById('qa-code').value.trim().toUpperCase();
+      const firstName = document.getElementById('qa-firstname').value.trim();
+      const lastName = document.getElementById('qa-lastname').value.trim();
+      const carModel = document.getElementById('qa-carmodel').value.trim();
+      const btn = document.getElementById('btn-qa-submit');
+
+      btn.disabled = true;
+      btn.innerHTML = 'Сохранение...';
+
+      try {
+        const res = await fetch('/api/admin?action=activate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({ code, firstName, lastName, carModel })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+          document.getElementById('quick-activate-form').reset();
+          loadAdminData();
+        } else {
+          showToast(data.error || 'Ошибка активации', 'error');
+        }
+      } catch (err) {
+        showToast('Ошибка сети', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Активировать`;
+        lucide.createIcons();
+      }
+    }
+
+    // Edit User Modal
+    function openEditModal(code) {
+      const u = globalUsers.find(item => item.code.toUpperCase() === code.toUpperCase());
+      if (!u) return;
+
+      document.getElementById('edit-code').value = u.code;
+      document.getElementById('edit-code-display').textContent = u.code;
+      document.getElementById('edit-firstname').value = u.firstName || '';
+      document.getElementById('edit-lastname').value = u.lastName || '';
+      document.getElementById('edit-phone').value = u.phone || '';
+      document.getElementById('edit-carmodel').value = u.carModel || 'Changan UNI-K';
+      document.getElementById('edit-active').checked = u.active !== false;
+
+      document.getElementById('edit-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.add('hidden');
+    }
+
+    async function handleSaveEdit(e) {
+      e.preventDefault();
+      const code = document.getElementById('edit-code').value;
+      const firstName = document.getElementById('edit-firstname').value.trim();
+      const lastName = document.getElementById('edit-lastname').value.trim();
+      const carModel = document.getElementById('edit-carmodel').value;
+      const phone = document.getElementById('edit-phone').value.trim();
+      const active = document.getElementById('edit-active').checked;
+      const btn = document.getElementById('btn-save-edit');
+
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/admin?action=edit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({ code, firstName, lastName, carModel, phone, active })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Пользователь обновлён!', 'success');
+          closeEditModal();
+          loadAdminData();
+        } else {
+          showToast(data.error || 'Ошибка сохранения', 'error');
+        }
+      } catch (err) {
+        showToast('Ошибка сети', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Delete User
+    async function handleDeleteUser(code) {
+      if (!confirm(`Вы действительно хотите удалить пользователя ${code}? Его доступ будет мгновенно заблокирован.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin?action=delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Пользователь удалён', 'success');
+          loadAdminData();
+        } else {
+          showToast(data.error || 'Ошибка удаления', 'error');
+        }
+      } catch (err) {
+        showToast('Ошибка сети', 'error');
+      }
+    }
+
+    // Approve Request Modal
+    let pendingApproveRequest = null;
+
+    function openApproveModal(code, firstName, lastName, phone) {
+      pendingApproveRequest = { code, firstName, lastName, phone };
+      document.getElementById('appr-code').value = code;
+      document.getElementById('appr-code-display').textContent = code;
+      document.getElementById('appr-name-display').textContent = `${firstName} ${lastName}`;
+      document.getElementById('appr-phone-display').textContent = phone;
+
+      document.getElementById('approve-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeApproveModal() {
+      document.getElementById('approve-modal').classList.add('hidden');
+      pendingApproveRequest = null;
+    }
+
+    async function handleConfirmApprove(e) {
+      e.preventDefault();
+      if (!pendingApproveRequest) return;
+
+      const carModel = document.getElementById('appr-carmodel').value;
+      const btn = document.getElementById('btn-confirm-appr');
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/admin?action=activate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({
+            code: pendingApproveRequest.code,
+            firstName: pendingApproveRequest.firstName,
+            lastName: pendingApproveRequest.lastName,
+            phone: pendingApproveRequest.phone,
+            carModel
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Доступ предоставлен! Пользователь активирован.', 'success');
+          closeApproveModal();
+          loadAdminData();
+        } else {
+          showToast(data.error || 'Ошибка активации', 'error');
+        }
+      } catch (err) {
+        showToast('Ошибка сети', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Delete Request
+    async function handleDeleteRequest(code) {
+      if (!confirm('Отклонить и удалить эту заявку?')) return;
+
+      try {
+        const res = await fetch('/api/admin?action=delete-request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Заявка отклонена');
+          loadAdminData();
+        }
+      } catch (err) {
+        showToast('Ошибка сети', 'error');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
