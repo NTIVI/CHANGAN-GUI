@@ -77,13 +77,21 @@
       box-sizing: border-box;
     }
 
-    html, body {
-      overscroll-behavior: none;
+    html {
+      overflow-y: scroll;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: none;
+    }
+
+    body {
       background-color: #0a0a0a;
       color: #e8e8e8;
       font-family: 'Inter', ui-sans-serif, system-ui;
       min-height: 100vh;
       overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
     }
 
     input, textarea {
@@ -521,7 +529,7 @@
 <!-- ═══════════════════════════════════════════════════
      MAIN CONTENT
 ════════════════════════════════════════════════════ -->
-<main id="main-content" class="px-4 py-4 pb-6 max-w-6xl mx-auto">
+<main id="main-content" class="px-4 py-4 pb-6 max-w-6xl mx-auto" style="touch-action: pan-y;">
 
   <!-- ── HOME PAGE ── -->
   <div id="page-home" class="page-content space-y-6">
