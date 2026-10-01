@@ -878,6 +878,7 @@
 // ════════════════════════════════════════════
 const POLL_INTERVAL_MS = 2500; // Check activation every 2.5 seconds
 let pollTimer = null;
+let backgroundSyncTimer = null;
 let deviceCode = '';
 let weatherData = null;
 let currentWeatherDay = 0;
@@ -934,8 +935,6 @@ function initActivation() {
   if (saved && saved.active && saved.code) {
     deviceCode = String(saved.code).trim().toUpperCase();
     showPortal(saved);
-    // Periodic background check to keep in sync
-    setInterval(backgroundStatusCheck, 45000);
     return;
   }
 
@@ -972,8 +971,6 @@ async function checkActivation() {
       // Activated!
       const user = { ...data.user, active: true };
       localStorage.setItem('ntivi_user', JSON.stringify(user));
-      localStorage.removeItem('ntivi_device_code');
-      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
       showPortal(user);
       showToast(`🎉 Доступ активирован! Добро пожаловать, ${user.firstName || ''}!`);
     }
@@ -985,23 +982,67 @@ async function checkActivation() {
 async function backgroundStatusCheck() {
   if (!deviceCode) return;
   try {
-    const res = await fetch(`/api/status?code=${encodeURIComponent(deviceCode)}&_t=${Date.now()}`);
+    const res = await fetch(`/api/status?code=${encodeURIComponent(deviceCode)}&_t=${Date.now()}`, {
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+    });
     if (!res.ok) return;
     const data = await res.json();
     if (data.success && data.active === false) {
-      // Access was revoked by admin!
-      localStorage.removeItem('ntivi_user');
-      window.location.reload();
+      // Access was revoked / user deleted by admin!
+      lockPortal();
     }
   } catch(e) {}
 }
 
+function lockPortal() {
+  // Clear saved user session
+  localStorage.removeItem('ntivi_user');
+  localStorage.setItem('ntivi_device_code', deviceCode);
+
+  // Stop background sync timer
+  if (backgroundSyncTimer) {
+    clearInterval(backgroundSyncTimer);
+    backgroundSyncTimer = null;
+  }
+
+  // Hide user profile badge
+  const badge = document.getElementById('user-profile-badge');
+  if (badge) badge.classList.remove('show');
+
+  // Immediately display the activation gate screen
+  const gate = document.getElementById('activation-gate');
+  if (gate) gate.style.display = 'flex';
+
+  const gateEl = document.getElementById('gate-code');
+  if (gateEl) gateEl.textContent = deviceCode;
+  const supEl = document.getElementById('support-code-display');
+  if (supEl) supEl.textContent = deviceCode;
+
+  // Close modals & side panels
+  closePanels();
+  closeRadioModal();
+  closeFabMenu();
+
+  // Start polling again for re-activation
+  startPolling();
+  showToast('⚠️ Доступ был отозван. Требуется повторная активация.');
+}
+
 function showPortal(user) {
-  document.getElementById('activation-gate').style.display = 'none';
+  const gate = document.getElementById('activation-gate');
+  if (gate) gate.style.display = 'none';
+
   setupUserProfile(user);
   lucide.createIcons();
   loadWeather();
   renderContacts();
+
+  // Stop gate polling
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+
+  // Start fast background sync (every 3 seconds) to detect if admin deletes user
+  if (backgroundSyncTimer) clearInterval(backgroundSyncTimer);
+  backgroundSyncTimer = setInterval(backgroundStatusCheck, 3000);
 }
 
 function setupUserProfile(user) {
