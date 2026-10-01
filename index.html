@@ -78,21 +78,25 @@
     }
 
     html {
-      overflow-y: scroll;
+      min-height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: none;
     }
 
     body {
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
       background-color: #0a0a0a;
       color: #e8e8e8;
       font-family: 'Inter', ui-sans-serif, system-ui;
-      min-height: 100vh;
       overflow-x: hidden;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
     }
+
 
     input, textarea {
       user-select: text;
