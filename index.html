@@ -219,12 +219,34 @@
 
     <!-- Your device code -->
     <div>
-      <p class="text-xs font-bold uppercase tracking-widest text-[#888] mb-3">Ваш код устройства</p>
-      <div id="gate-code" class="activation-code pulse-ring">--------</div>
-      <p class="text-xs text-[#666] mt-3">Страница автоматически откроется после активации</p>
+      <p class="text-xs font-bold uppercase tracking-widest text-[#888] mb-2">Ваш код устройства</p>
+      <div
+        id="gate-code"
+        class="activation-code pulse-ring cursor-pointer hover:border-[#FF6B00] transition"
+        onclick="copyDeviceCode()"
+        title="Нажмите, чтобы скопировать"
+      >--------</div>
+
+      <div class="mt-2.5 flex justify-center">
+        <button
+          id="btn-copy-code"
+          type="button"
+          onclick="copyDeviceCode()"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white transition hover:scale-105 active:scale-95"
+          style="background: rgba(255,107,0,0.15); border: 1.5px solid #FF6B00; cursor: pointer;"
+        >
+          <svg id="copy-icon" class="w-4 h-4 text-[#FF6B00]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <span id="btn-copy-text" style="color: #FF6B00;">Скопировать код</span>
+        </button>
+      </div>
+
+      <p class="text-xs text-[#666] mt-3">Нажмите на код или кнопку, чтобы скопировать.<br>Страница автоматически откроется после активации.</p>
       <div class="mt-2 flex items-center justify-center gap-2">
         <div class="w-2 h-2 rounded-full bg-[#FF6B00] animate-ping"></div>
-        <span class="text-xs text-[#888]">Ожидание активации...</span>
+        <span class="text-xs text-[#888]">Ожидание подтверждения...</span>
       </div>
     </div>
 
@@ -809,7 +831,7 @@
 // ════════════════════════════════════════════
 // CONSTANTS & STATE
 // ════════════════════════════════════════════
-const POLL_INTERVAL_MS = 8000; // Check activation every 8 seconds
+const POLL_INTERVAL_MS = 2500; // Check activation every 2.5 seconds
 let pollTimer = null;
 let deviceCode = '';
 let weatherData = null;
@@ -827,22 +849,60 @@ function generateCode() {
   return c;
 }
 
+function copyDeviceCode() {
+  if (!deviceCode) return;
+  const text = deviceCode;
+  const btnText = document.getElementById('btn-copy-text');
+
+  function onSuccess() {
+    if (btnText) btnText.textContent = 'Код скопирован! ✓';
+    showToast(`✅ Код ${text} скопирован в буфер!`);
+    setTimeout(() => { if (btnText) btnText.textContent = 'Скопировать код'; }, 2500);
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallbackCopyCode(text, onSuccess));
+  } else {
+    fallbackCopyCode(text, onSuccess);
+  }
+}
+
+function fallbackCopyCode(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    if (cb) cb();
+  } catch (e) {
+    showToast(`Ваш код: ${text}`);
+  }
+  document.body.removeChild(ta);
+}
+
 function initActivation() {
   // Check if already activated
   const saved = JSON.parse(localStorage.getItem('ntivi_user') || 'null');
   if (saved && saved.active && saved.code) {
-    deviceCode = saved.code;
+    deviceCode = String(saved.code).trim().toUpperCase();
     showPortal(saved);
+    // Periodic background check to keep in sync
+    setInterval(backgroundStatusCheck, 45000);
     return;
   }
 
   // Generate or recover code
-  deviceCode = localStorage.getItem('ntivi_device_code') || generateCode();
+  deviceCode = String(localStorage.getItem('ntivi_device_code') || generateCode()).trim().toUpperCase();
   localStorage.setItem('ntivi_device_code', deviceCode);
 
   // Show code on gate
-  document.getElementById('gate-code').textContent = deviceCode;
-  document.getElementById('support-code-display').textContent = deviceCode;
+  const gateEl = document.getElementById('gate-code');
+  if (gateEl) gateEl.textContent = deviceCode;
+  const supEl = document.getElementById('support-code-display');
+  if (supEl) supEl.textContent = deviceCode;
 
   // Start polling
   startPolling();
@@ -855,9 +915,10 @@ function startPolling() {
 }
 
 async function checkActivation() {
+  if (!deviceCode) return;
   try {
-    const res = await fetch(`/api/status?code=${deviceCode}`, {
-      headers: { 'Cache-Control': 'no-cache' }
+    const res = await fetch(`/api/status?code=${encodeURIComponent(deviceCode)}&_t=${Date.now()}`, {
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
     });
     if (!res.ok) return;
     const data = await res.json();
@@ -869,10 +930,25 @@ async function checkActivation() {
       localStorage.removeItem('ntivi_device_code');
       if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
       showPortal(user);
+      showToast(`🎉 Доступ активирован! Добро пожаловать, ${user.firstName || ''}!`);
     }
   } catch (e) {
     // Network error — keep polling silently
   }
+}
+
+async function backgroundStatusCheck() {
+  if (!deviceCode) return;
+  try {
+    const res = await fetch(`/api/status?code=${encodeURIComponent(deviceCode)}&_t=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.success && data.active === false) {
+      // Access was revoked by admin!
+      localStorage.removeItem('ntivi_user');
+      window.location.reload();
+    }
+  } catch(e) {}
 }
 
 function showPortal(user) {

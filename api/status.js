@@ -16,8 +16,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const db = await getDb();
-    const user = (db.users || []).find(u => u.code.toUpperCase() === code);
+    const db = await getDb(true);
+    const user = (db.users || []).find(u => (u.code || '').trim().toUpperCase() === code);
 
     if (user && user.active !== false) {
       return res.status(200).json({
