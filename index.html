@@ -365,28 +365,110 @@
       50%       { box-shadow: 0 4px 20px rgba(255,107,0,0.5), 0 0 0 10px rgba(255,107,0,0); }
     }
 
-    /* FAB Tooltip */
-    #fab-tooltip {
+    /* FAB Menu */
+    #fab-menu {
       position: fixed;
-      bottom: 96px;
-      right: 14px;
-      z-index: 8887;
-      background: #1a1a1a;
-      border: 1px solid #FF6B00;
-      border-radius: 10px;
-      padding: 8px 14px;
+      z-index: 8886;
+      background: #111111;
+      border: 1px solid rgba(255,107,0,0.35);
+      border-radius: 18px;
+      padding: 8px;
+      min-width: 220px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 20px rgba(255,107,0,0.15);
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      backdrop-filter: blur(12px);
+      animation: fabMenuIn 0.2s ease;
+    }
+    #fab-menu.open { display: flex; }
+    @keyframes fabMenuIn {
+      from { opacity: 0; transform: scale(0.85) translateY(10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .fab-menu-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px 10px;
+      border-bottom: 1px solid #1f1f1f;
+      margin-bottom: 4px;
+    }
+    .fab-menu-title {
       font-size: 12px;
+      font-weight: 700;
+      color: #FF6B00;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .fab-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-size: 13px;
       font-weight: 600;
       color: #e8e8e8;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.2s;
-      box-shadow: 0 0 14px rgba(255,107,0,0.2);
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
     }
-    #fab-btn:hover + #fab-tooltip {
-      opacity: 1;
+    .fab-menu-item:hover, .fab-menu-item:active {
+      background: rgba(255,107,0,0.1);
+      color: #FF6B00;
     }
+    .fab-menu-item .fab-menu-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 15px;
+    }
+    .fab-menu-divider {
+      height: 1px;
+      background: #1f1f1f;
+      margin: 4px 0;
+    }
+    /* FAB toggle card */
+    .fab-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #2a2a2a;
+      border-radius: 26px;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+    .toggle-slider:before {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+      left: 3px; top: 3px;
+      background: #666;
+      border-radius: 50%;
+      transition: transform 0.25s, background 0.25s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: rgba(255,107,0,0.2); border: 1px solid #FF6B00; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(22px); background: #FF6B00; }
   </style>
 
 </head>
@@ -490,7 +572,7 @@
     </div>
 
     <!-- ── NAVIGATION SECTION ── -->
-    <div>
+    <div id="sec-nav">
       <div class="flex items-center gap-3 mb-3">
         <i data-lucide="navigation-2" class="w-4 h-4" style="color:#FF6B00;"></i>
         <span class="section-title">Навигация</span>
@@ -546,7 +628,7 @@
     </div>
 
     <!-- ── ENTERTAINMENT SECTION ── -->
-    <div>
+    <div id="sec-entertainment">
       <div class="flex items-center gap-3 mb-3">
         <i data-lucide="play-circle" class="w-4 h-4" style="color:#FF6B00;"></i>
         <span class="section-title">Развлечения и Соцсети</span>
@@ -676,7 +758,7 @@
     </div>
 
     <!-- ── UTILITY SECTION ── -->
-    <div>
+    <div id="sec-utils">
       <div class="flex items-center gap-3 mb-3">
         <i data-lucide="zap" class="w-4 h-4" style="color:#FF6B00;"></i>
         <span class="section-title">Быстрые действия</span>
@@ -727,12 +809,26 @@
           </div>
         </button>
 
+        <div class="card-tile p-4 flex items-center gap-3" onclick="toggleFabVisibility()">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style="background: rgba(255,107,0,0.1);">
+            <i data-lucide="navigation" class="w-5 h-5" style="color:#FF6B00;"></i>
+          </div>
+          <div class="text-left flex-1">
+            <div class="font-bold text-sm">Плавающая кнопка</div>
+            <div id="fab-toggle-status" class="text-xs text-brand-text-muted">Включена</div>
+          </div>
+          <label class="toggle-switch" onclick="event.stopPropagation()">
+            <input type="checkbox" id="fab-toggle-checkbox" checked onchange="toggleFabVisibility()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
       </div>
     </div>
 
-    <!-- ── FOOTER ── -->
     <!-- ── BOOKMARKLET SECTION ── -->
-    <div>
+    <div id="sec-fab">
       <div class="flex items-center gap-3 mb-3">
         <i data-lucide="bookmark" class="w-4 h-4" style="color:#FF6B00;"></i>
         <span class="section-title">Плавающая кнопка на любом сайте</span>
@@ -812,8 +908,51 @@
   </svg>
 </div>
 
-<div id="fab-tooltip">☰ NTIVI Portal</div>
+<!-- ═══════════════════════════════════════════════════
+     FAB MENU (popup)
+════════════════════════════════════════════════════ -->
+<div id="fab-menu">
+  <div class="fab-menu-header">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M2 17l10 5 10-5" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M2 12l10 5 10-5" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="fab-menu-title">NTIVI Portal</span>
+  </div>
 
+  <button class="fab-menu-item" onclick="fabScrollTo('top')">
+    <div class="fab-menu-icon" style="background:rgba(255,107,0,0.12);">🏠</div>
+    <span>Главная</span>
+  </button>
+  <button class="fab-menu-item" onclick="fabScrollTo('sec-nav')">
+    <div class="fab-menu-icon" style="background:rgba(59,130,246,0.12);">🗺</div>
+    <span>Навигация</span>
+  </button>
+  <button class="fab-menu-item" onclick="fabScrollTo('sec-entertainment')">
+    <div class="fab-menu-icon" style="background:rgba(255,0,0,0.12);">🎬</div>
+    <span>Развлечения</span>
+  </button>
+  <button class="fab-menu-item" onclick="fabScrollTo('sec-utils')">
+    <div class="fab-menu-icon" style="background:rgba(234,179,8,0.12);">⚡</div>
+    <span>Быстрые действия</span>
+  </button>
+  <button class="fab-menu-item" onclick="fabScrollTo('sec-fab')">
+    <div class="fab-menu-icon" style="background:rgba(139,92,246,0.12);">📌</div>
+    <span>Плавающая кнопка</span>
+  </button>
+
+  <div class="fab-menu-divider"></div>
+
+  <button class="fab-menu-item" onclick="reloadPage(); closeFabMenu();">
+    <div class="fab-menu-icon" style="background:rgba(255,107,0,0.08);">🔄</div>
+    <span>Перезагрузить</span>
+  </button>
+  <button class="fab-menu-item" onclick="toggleFullscreen(); closeFabMenu();">
+    <div class="fab-menu-icon" style="background:rgba(59,130,246,0.08);">⛶</div>
+    <span>Полный экран</span>
+  </button>
+</div>
 
 
 <!-- ═══════════════════════════════════════════════════
@@ -1108,15 +1247,15 @@
 
   // ── Handle keyboard ────────────────────────────────
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeRadioModal();
+    if (e.key === 'Escape') { closeRadioModal(); closeFabMenu(); }
   });
 
   // ═══════════════════════════════════════════════════
-  // FAB — Draggable Floating Button
+  // FAB — Draggable Floating Button + Menu
   // ═══════════════════════════════════════════════════
   (function () {
-    const fab = document.getElementById('fab-btn');
-    const tooltip = document.getElementById('fab-tooltip');
+    const fab  = document.getElementById('fab-btn');
+    const menu = document.getElementById('fab-menu');
     if (!fab) return;
 
     let isDragging = false;
@@ -1128,38 +1267,39 @@
       return { x: t.clientX, y: t.clientY };
     }
 
+    function positionMenu() {
+      const fabRect = fab.getBoundingClientRect();
+      const mW = 230, mH = menu.scrollHeight || 320;
+      let top  = fabRect.top  - mH - 10;
+      let left = fabRect.right - mW;
+      if (top < 8) top = fabRect.bottom + 10;
+      if (left < 8) left = 8;
+      if (left + mW > window.innerWidth - 8) left = window.innerWidth - mW - 8;
+      menu.style.top  = top  + 'px';
+      menu.style.left = left + 'px';
+    }
+
     function startDragFab(e) {
       if (e.type === 'touchstart') e.preventDefault();
       const { x, y } = getClientXY(e);
-      startX = x;
-      startY = y;
+      startX = x; startY = y;
       const rect = fab.getBoundingClientRect();
       startRight  = window.innerWidth  - rect.right;
       startBottom = window.innerHeight - rect.bottom;
       isDragging = true;
       moved = false;
       fab.classList.add('dragging');
+      closeFabMenu();
 
       const onMove = (ev) => {
         if (!isDragging) return;
         const { x: cx, y: cy } = getClientXY(ev);
-        const dx = cx - startX;
-        const dy = cy - startY;
+        const dx = cx - startX, dy = cy - startY;
         if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
-
-        let newRight  = startRight  - dx;
-        let newBottom = startBottom + dy;
-
-        // Keep within viewport
-        newRight  = Math.max(8, Math.min(newRight,  window.innerWidth  - 66));
-        newBottom = Math.max(8, Math.min(newBottom, window.innerHeight - 66));
-
-        fab.style.right  = newRight  + 'px';
-        fab.style.bottom = newBottom + 'px';
-        if (tooltip) {
-          tooltip.style.right  = (newRight - 4) + 'px';
-          tooltip.style.bottom = (newBottom + 68) + 'px';
-        }
+        let nr = Math.max(8, Math.min(startRight  - dx, window.innerWidth  - 66));
+        let nb = Math.max(8, Math.min(startBottom + dy, window.innerHeight - 66));
+        fab.style.right  = nr + 'px';
+        fab.style.bottom = nb + 'px';
       };
 
       const onEnd = () => {
@@ -1169,16 +1309,10 @@
         document.removeEventListener('mouseup',   onEnd);
         document.removeEventListener('touchmove', onMove);
         document.removeEventListener('touchend',  onEnd);
-        // Snap to nearest side edge
         const rect2 = fab.getBoundingClientRect();
-        const midX = rect2.left + rect2.width / 2;
-        if (midX > window.innerWidth / 2) {
-          fab.style.right = '22px';
-          fab.style.left  = 'auto';
-        } else {
-          fab.style.left  = '22px';
-          fab.style.right = 'auto';
-        }
+        const midX  = rect2.left + rect2.width / 2;
+        if (midX > window.innerWidth / 2) { fab.style.right = '22px'; fab.style.left = 'auto'; }
+        else                               { fab.style.left  = '22px'; fab.style.right = 'auto'; }
       };
 
       document.addEventListener('mousemove', onMove);
@@ -1188,74 +1322,156 @@
     }
 
     function onFabClick(e) {
-      if (moved) { moved = false; return; } // was a drag, not a click
-      // Already on portal — scroll to top
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      showToast('🏠 На главную');
+      if (moved) { moved = false; return; }
+      if (menu.classList.contains('open')) {
+        closeFabMenu();
+      } else {
+        positionMenu();
+        menu.classList.add('open');
+      }
     }
 
-    // Expose to global scope (called by HTML attributes)
+    // Close menu on outside click
+    document.addEventListener('click', (e) => {
+      if (menu.classList.contains('open') &&
+          !menu.contains(e.target) && e.target !== fab && !fab.contains(e.target)) {
+        closeFabMenu();
+      }
+    });
+
     window.startDragFab = startDragFab;
     window.onFabClick   = onFabClick;
   })();
+
+  function closeFabMenu() {
+    const m = document.getElementById('fab-menu');
+    if (m) m.classList.remove('open');
+  }
+
+  function fabScrollTo(target) {
+    closeFabMenu();
+    if (target === 'top') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const el = document.getElementById(target);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function toggleFabVisibility() {
+    const fab  = document.getElementById('fab-btn');
+    const cb   = document.getElementById('fab-toggle-checkbox');
+    const st   = document.getElementById('fab-toggle-status');
+    if (!fab || !cb) return;
+    const enabled = cb.checked;
+    fab.style.display = enabled ? 'flex' : 'none';
+    if (st) st.textContent = enabled ? 'Включена' : 'Выключена';
+    showToast(enabled ? '✅ Кнопка включена' : '❌ Кнопка выключена');
+  }
+
 
   // ═══════════════════════════════════════════════════
   // Bookmarklet Generator
   // ═══════════════════════════════════════════════════
   (function () {
-    // URL портала — подстраивается автоматически
     const portalUrl = window.location.href.split('#')[0];
 
-    // Код, который инжектируется на любой сайт через закладку
+    // Bookmarklet — инжектирует FAB с мини-меню на любой сайт
     const injectCode = `
 (function(){
   var ID='__ntivi_fab__';
   if(document.getElementById(ID)){
-    document.getElementById(ID).remove();
-    document.getElementById(ID+'_tip')&&document.getElementById(ID+'_tip').remove();
+    var ex=document.getElementById(ID);
+    ex.parentNode&&ex.parentNode.removeChild(ex);
+    var em=document.getElementById(ID+'_menu');
+    em&&em.parentNode&&em.parentNode.removeChild(em);
+    var es=document.getElementById(ID+'_style');
+    es&&es.parentNode&&es.parentNode.removeChild(es);
     return;
   }
   var url='${portalUrl}';
+  var st=document.createElement('style');
+  st.id=ID+'_style';
+  st.textContent='@keyframes __nfab_p{0%,100%{box-shadow:0 4px 20px rgba(255,107,0,.5),0 0 0 0 rgba(255,107,0,.35)}50%{box-shadow:0 4px 20px rgba(255,107,0,.5),0 0 0 10px rgba(255,107,0,0)}}@keyframes __nfab_mi{from{opacity:0;transform:scale(.85) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}';
+  document.head.appendChild(st);
   var fab=document.createElement('div');
   fab.id=ID;
-  fab.title='NTIVI Portal';
   fab.innerHTML='<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var s=fab.style;
-  s.cssText='position:fixed;bottom:28px;right:22px;z-index:2147483647;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#FF6B00,#CC5500);box-shadow:0 4px 20px rgba(255,107,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:none;transition:transform .15s,box-shadow .15s;animation:__nfab_p 3s ease-in-out infinite;';
-  var tip=document.createElement('div');
-  tip.id=ID+'_tip';
-  tip.textContent='☰ NTIVI Portal';
-  var ts=tip.style;
-  ts.cssText='position:fixed;bottom:94px;right:14px;z-index:2147483646;background:#1a1a1a;border:1px solid #FF6B00;border-radius:10px;padding:7px 13px;font-size:12px;font-weight:600;color:#e8e8e8;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;font-family:Inter,sans-serif;';
-  var st=document.createElement('style');
-  st.textContent='@keyframes __nfab_p{0%,100%{box-shadow:0 4px 20px rgba(255,107,0,.5),0 0 0 0 rgba(255,107,0,.35)}50%{box-shadow:0 4px 20px rgba(255,107,0,.5),0 0 0 10px rgba(255,107,0,0)}}';
-  document.head.appendChild(st);
+  fab.style.cssText='position:fixed;bottom:28px;right:22px;z-index:2147483647;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#FF6B00,#CC5500);box-shadow:0 4px 20px rgba(255,107,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:none;transition:transform .15s;animation:__nfab_p 3s ease-in-out infinite;font-family:Inter,system-ui,sans-serif;';
+  var menu=document.createElement('div');
+  menu.id=ID+'_menu';
+  menu.style.cssText='display:none;position:fixed;z-index:2147483646;background:#111;border:1px solid rgba(255,107,0,.35);border-radius:16px;padding:6px;min-width:210px;box-shadow:0 8px 40px rgba(0,0,0,.8);flex-direction:column;gap:2px;font-family:Inter,system-ui,sans-serif;animation:__nfab_mi .2s ease;';
+  function mitem(emoji,label,href){
+    var d=document.createElement('a');
+    d.href=href;d.target='_blank';
+    d.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:#e8e8e8;text-decoration:none;transition:background .15s;';
+    d.onmouseover=function(){this.style.background='rgba(255,107,0,.12)';this.style.color='#FF6B00';};
+    d.onmouseout=function(){this.style.background='';this.style.color='#e8e8e8';};
+    var ic=document.createElement('span');
+    ic.style.cssText='width:28px;height:28px;border-radius:8px;background:rgba(255,107,0,.1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;';
+    ic.textContent=emoji;
+    var tx=document.createElement('span');tx.textContent=label;
+    d.appendChild(ic);d.appendChild(tx);
+    return d;
+  }
+  var hdr=document.createElement('div');
+  hdr.style.cssText='padding:8px 10px 10px;border-bottom:1px solid #1f1f1f;margin-bottom:4px;font-size:11px;font-weight:700;color:#FF6B00;letter-spacing:.1em;text-transform:uppercase;';
+  hdr.textContent='NTIVI Portal';
+  menu.appendChild(hdr);
+  menu.appendChild(mitem('🏠','Главная',url));
+  menu.appendChild(mitem('🗺','Навигация',url+'#sec-nav'));
+  menu.appendChild(mitem('🎬','Развлечения',url+'#sec-entertainment'));
+  menu.appendChild(mitem('⚡','Быстрые действия',url+'#sec-utils'));
+  var div=document.createElement('div');div.style.cssText='height:1px;background:#1f1f1f;margin:4px 0;';menu.appendChild(div);
+  var close=document.createElement('button');
+  close.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:#888;background:transparent;border:none;width:100%;';
+  close.textContent='✕  Скрыть кнопку';
+  close.onclick=function(){
+    fab.parentNode&&fab.parentNode.removeChild(fab);
+    menu.parentNode&&menu.parentNode.removeChild(menu);
+  };
+  menu.appendChild(close);
+  var menuOpen=false;
+  function posMenu(){
+    var fr=fab.getBoundingClientRect();
+    var mh=menu.scrollHeight||280;
+    var top=fr.top-mh-10;
+    var left=fr.right-210;
+    if(top<8)top=fr.bottom+10;
+    if(left<8)left=8;
+    if(left+210>window.innerWidth-8)left=window.innerWidth-218;
+    menu.style.top=top+'px';menu.style.left=left+'px';
+  }
   var moved=false,sx,sy,sr,sb,drag=false;
-  fab.addEventListener('mouseenter',function(){tip.style.opacity='1';});
-  fab.addEventListener('mouseleave',function(){tip.style.opacity='0';});
   function gxy(e){var t=e.touches?e.touches[0]:e;return{x:t.clientX,y:t.clientY};}
-  function ds(e){if(e.type==='touchstart')e.preventDefault();var p=gxy(e);sx=p.x;sy=p.y;var r=fab.getBoundingClientRect();sr=window.innerWidth-r.right;sb=window.innerHeight-r.bottom;drag=true;moved=false;fab.style.transform='scale(1.08)';}
-  function dm(e){if(!drag)return;var p=gxy(e);var dx=p.x-sx,dy=p.y-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;fab.style.right=Math.max(8,Math.min(sr-dx,window.innerWidth-64))+'px';fab.style.bottom=Math.max(8,Math.min(sb+dy,window.innerHeight-64))+'px';tip.style.right=(parseFloat(fab.style.right)-4)+'px';tip.style.bottom=(parseFloat(fab.style.bottom)+68)+'px';}
+  function ds(e){if(e.type==='touchstart')e.preventDefault();var p=gxy(e);sx=p.x;sy=p.y;var r=fab.getBoundingClientRect();sr=window.innerWidth-r.right;sb=window.innerHeight-r.bottom;drag=true;moved=false;fab.style.transform='scale(1.08)';menu.style.display='none';menuOpen=false;}
+  function dm(e){if(!drag)return;var p=gxy(e);var dx=p.x-sx,dy=p.y-sy;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;fab.style.right=Math.max(8,Math.min(sr-dx,window.innerWidth-64))+'px';fab.style.bottom=Math.max(8,Math.min(sb+dy,window.innerHeight-64))+'px';}
   function de(){drag=false;fab.style.transform='';}
   fab.addEventListener('mousedown',ds);fab.addEventListener('touchstart',ds,{passive:false});
   document.addEventListener('mousemove',dm);document.addEventListener('mouseup',de);
   document.addEventListener('touchmove',dm,{passive:false});document.addEventListener('touchend',de);
-  fab.addEventListener('click',function(){if(moved){moved=false;return;}window.location.href=url;});
-  document.body.appendChild(st);document.body.appendChild(fab);document.body.appendChild(tip);
+  fab.addEventListener('click',function(){
+    if(moved){moved=false;return;}
+    if(menuOpen){menu.style.display='none';menuOpen=false;}
+    else{posMenu();menu.style.display='flex';menuOpen=true;}
+  });
+  document.addEventListener('click',function(e){
+    if(menuOpen&&!menu.contains(e.target)&&e.target!==fab&&!fab.contains(e.target)){
+      menu.style.display='none';menuOpen=false;
+    }
+  });
+  document.body.appendChild(fab);document.body.appendChild(menu);
 })();
-`.replace(/\s+/g,' ').trim();
+`.replace(/\n\s*/g,' ').trim();
 
     const bookmarklet = 'javascript:' + encodeURIComponent(injectCode);
 
-    // Set bookmarklet link href
     const link = document.getElementById('bookmarklet-link');
     if (link) link.href = bookmarklet;
 
-    // Show code in preview box
     const codeEl = document.getElementById('bookmarklet-code');
     if (codeEl) codeEl.textContent = bookmarklet.substring(0, 120) + '…';
 
-    // Store full code for copy
     window.__bookmarkletFull = bookmarklet;
   })();
 
