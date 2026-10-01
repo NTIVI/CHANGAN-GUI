@@ -29,6 +29,7 @@ module.exports = async (req, res) => {
     const firstName = String(body.firstName || '').trim();
     const lastName = String(body.lastName || '').trim();
     const phone = String(body.phone || '').trim();
+    const carModel = String(body.carModel || 'Changan UNI-K').trim();
 
     if (!code || code.length > 8) {
       return res.status(400).json({ success: false, error: 'Неверный код устройства (максимум 8 символов)' });
@@ -56,6 +57,7 @@ module.exports = async (req, res) => {
       existingReq.firstName = firstName;
       existingReq.lastName = lastName;
       existingReq.phone = phone;
+      existingReq.carModel = carModel;
       existingReq.updatedAt = new Date().toISOString();
       await saveDb(db);
       return res.status(200).json({
@@ -71,6 +73,7 @@ module.exports = async (req, res) => {
       firstName,
       lastName,
       phone,
+      carModel,
       createdAt: new Date().toISOString()
     };
 

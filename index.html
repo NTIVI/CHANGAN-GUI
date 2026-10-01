@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>NTIVI STUDIO: Car Portal</title>
+  <title>CHANGAN.AM — Car Portal</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -195,7 +195,7 @@
     </div>
 
     <div>
-      <h1 class="text-xl font-black text-white mb-1">NTIVI STUDIO Car Portal</h1>
+      <h1 class="text-xl font-black text-white mb-1">CHANGAN.AM Car Portal</h1>
       <p class="text-sm text-[#888]">Для получения доступа выполните одно из действий:</p>
     </div>
 
@@ -261,20 +261,20 @@
 <!-- ═══════════════════════════════════════════════════
      SUPPORT REQUEST MODAL
 ════════════════════════════════════════════════════ -->
-<div id="support-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeSupportModal()">
+<div id="support-modal" class="modal-overlay hidden" style="z-index: 10005;" onclick="if(event.target===this)closeSupportModal()">
   <div class="modal-box p-6 w-full max-w-md" onclick="event.stopPropagation()">
     <div class="flex items-center justify-between mb-5">
       <div class="flex items-center gap-2">
         <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #FF6B00, #CC5500);">
           <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
-        <span class="font-bold text-base">Заявка на доступ</span>
+        <span class="font-bold text-base">Заявка на доступ CHANGAN.AM</span>
       </div>
       <button onclick="closeSupportModal()" class="nav-btn p-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg></button>
     </div>
 
     <div id="support-error" class="hidden mb-4 p-3 rounded-xl text-sm font-semibold text-red-300" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25);"></div>
-    <div id="support-success" class="hidden mb-4 p-3 rounded-xl text-sm font-semibold text-green-300" style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.25);">✅ Заявка успешно отправлена! Ожидайте подтверждения.</div>
+    <div id="support-success" class="hidden mb-4 p-3 rounded-xl text-sm font-semibold text-green-300" style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.25);">✅ Заявка успешно отправлена! Ожидайте подтверждения администратора — сайт откроется автоматически.</div>
 
     <form id="support-form" onsubmit="handleSupportSubmit(event)" class="space-y-4">
       <div class="p-3 rounded-xl flex items-center justify-between" style="background:#161616; border:1px solid #262626;">
@@ -296,6 +296,51 @@
       <div>
         <label class="form-label">Номер телефона *</label>
         <input id="sup-phone" type="tel" required placeholder="+374 77 123456" class="form-input" />
+      </div>
+
+      <div>
+        <label class="form-label">Модель автомобиля *</label>
+        <select id="sup-carmodel" required class="form-input" style="background:#161616;">
+          <optgroup label="Qiyuan">
+            <option value="Qiyuan A05">Qiyuan A05</option>
+            <option value="Qiyuan A06">Qiyuan A06</option>
+            <option value="Qiyuan A07">Qiyuan A07</option>
+            <option value="Qiyuan Q05">Qiyuan Q05</option>
+            <option value="Qiyuan E07">Qiyuan E07</option>
+          </optgroup>
+          <optgroup label="Deepal">
+            <option value="Deepal S07">Deepal S07</option>
+            <option value="Deepal SL03">Deepal SL03</option>
+            <option value="Deepal S05">Deepal S05</option>
+            <option value="Deepal L07">Deepal L07</option>
+            <option value="Deepal G318">Deepal G318</option>
+          </optgroup>
+          <optgroup label="Avatr">
+            <option value="Avatr 11">Avatr 11</option>
+            <option value="Avatr 12">Avatr 12</option>
+            <option value="Avatr 07">Avatr 07</option>
+          </optgroup>
+          <optgroup label="Changan UNI">
+            <option value="Changan UNI-K" selected>Changan UNI-K</option>
+            <option value="Changan UNI-V">Changan UNI-V</option>
+            <option value="Changan UNI-T">Changan UNI-T</option>
+            <option value="Changan UNI-Z">Changan UNI-Z</option>
+          </optgroup>
+          <optgroup label="Changan CS & Седаны">
+            <option value="Changan CS75 Plus">Changan CS75 Plus</option>
+            <option value="Changan CS55 Plus">Changan CS55 Plus</option>
+            <option value="Changan CS35 Plus">Changan CS35 Plus</option>
+            <option value="Changan CS85">Changan CS85</option>
+            <option value="Changan CS95">Changan CS95</option>
+            <option value="Changan Eado Plus">Changan Eado Plus</option>
+            <option value="Changan Lamore">Changan Lamore</option>
+            <option value="Changan Alsvin">Changan Alsvin</option>
+            <option value="Changan Hunter">Changan Hunter</option>
+            <option value="Changan Lumin">Changan Lumin</option>
+            <option value="Changan BenBen E-Star">Changan BenBen E-Star</option>
+            <option value="Другая модель">Другая модель</option>
+          </optgroup>
+        </select>
       </div>
 
       <button type="submit" id="btn-support-submit" class="orange-btn w-full py-3 text-sm font-bold text-white flex items-center justify-center gap-2">
@@ -447,7 +492,7 @@
       </svg>
     </div>
     <div class="hidden sm:block">
-      <div class="logo-text">NTIVI STUDIO</div>
+      <div class="logo-text">CHANGAN.AM</div>
       <div class="logo-sub">Car Portal</div>
     </div>
   </div>
@@ -748,7 +793,7 @@
 
     <!-- Footer -->
     <div class="text-center py-4">
-      <span class="text-xs font-medium" style="color:#333;">NTIVI STUDIO Car Portal &nbsp;·&nbsp; v2.0 &nbsp;·&nbsp; 2026</span>
+      <span class="text-xs font-medium" style="color:#333;">CHANGAN.AM Car Portal &nbsp;·&nbsp; v2.0 &nbsp;·&nbsp; 2026</span>
     </div>
 
   </div><!-- /page-home -->
@@ -772,7 +817,7 @@
 <div id="fab-menu">
   <div class="fab-menu-header">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke="#FF6B00" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span class="fab-menu-title">NTIVI Portal</span>
+    <span class="fab-menu-title">CHANGAN.AM</span>
   </div>
   <button class="fab-menu-item" onclick="fabScrollTo('top')"><div class="fab-menu-icon" style="background:rgba(255,107,0,0.12);">🏠</div><span>Главная</span></button>
   <button class="fab-menu-item" onclick="fabScrollTo('sec-nav')"><div class="fab-menu-icon" style="background:rgba(59,130,246,0.12);">🗺</div><span>Навигация</span></button>
@@ -995,6 +1040,7 @@ async function handleSupportSubmit(e) {
   const fn = document.getElementById('sup-firstname').value.trim();
   const ln = document.getElementById('sup-lastname').value.trim();
   const ph = document.getElementById('sup-phone').value.trim();
+  const car = document.getElementById('sup-carmodel').value.trim();
   const btn = document.getElementById('btn-support-submit');
   const errBox = document.getElementById('support-error');
   const okBox = document.getElementById('support-success');
@@ -1008,7 +1054,7 @@ async function handleSupportSubmit(e) {
     const res = await fetch('/api/request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: deviceCode, firstName: fn, lastName: ln, phone: ph })
+      body: JSON.stringify({ code: deviceCode, firstName: fn, lastName: ln, phone: ph, carModel: car })
     });
     const data = await res.json();
 
