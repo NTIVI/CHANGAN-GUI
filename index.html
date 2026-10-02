@@ -63,18 +63,35 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: #FF6B00; border-radius: 2px; }
 
-    /* ── SMOOTH THEME ANIMATION ── */
+    /* ── SMOOTH THEME ILLUMINATION & TRANSITION ANIMATION ── */
+    #theme-lighting-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 99999;
+      opacity: 0;
+      transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #theme-lighting-overlay.active-to-light {
+      opacity: 1;
+      background: radial-gradient(circle at var(--toggle-x, 90%) var(--toggle-y, 20px), rgba(255,255,255,0.45) 0%, rgba(255,180,100,0.15) 40%, transparent 75%);
+    }
+    #theme-lighting-overlay.active-to-dark {
+      opacity: 1;
+      background: radial-gradient(circle at var(--toggle-x, 90%) var(--toggle-y, 20px), rgba(10,10,15,0.6) 0%, rgba(20,20,35,0.25) 45%, transparent 80%);
+    }
+
     html.theme-transitioning,
     html.theme-transitioning *,
     html.theme-transitioning *::before,
     html.theme-transitioning *::after {
-      transition: background-color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                  background 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                  border-color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                  color 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                  fill 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                  stroke 0.45s cubic-bezier(0.4, 0, 0.2, 1),
-                  box-shadow 0.45s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      transition: background-color 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+                  background 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-color 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+                  color 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+                  fill 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+                  stroke 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 0.55s cubic-bezier(0.4, 0, 0.2, 1) !important;
       transition-delay: 0s !important;
     }
 
@@ -285,7 +302,8 @@
 
 <body class="transition-colors duration-200">
 
-<!-- ═══════════════════════════════════════════════════
+<!-- ══════ THEME ILLUMINATION LIGHTING OVERLAY ══════ -->
+<div id="theme-lighting-overlay"></div>
      ACTIVATION GATE — показывается при первом визите
 ════════════════════════════════════════════════════ -->
 <div id="activation-gate">
@@ -642,7 +660,7 @@
     </button>
 
     <!-- Theme toggle -->
-    <button id="theme-btn" onclick="toggleTheme()" title="Сменить тему">
+    <button id="theme-btn" onclick="toggleTheme(event)" title="Сменить тему">
       <div id="theme-icon-container">
         <svg id="theme-icon-dark" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg id="theme-icon-light" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -1546,10 +1564,37 @@ function applyTheme(theme) {
 }
 
 let themeTransitionTimer = null;
+let themeLightTimer = null;
 
-function toggleTheme() {
+function toggleTheme(event) {
   const current = localStorage.getItem('ntivi_theme') || 'dark';
   const next = current === 'dark' ? 'light' : 'dark';
+
+  // Get click coordinates for light radial source origin
+  let x = '90%', y = '24px';
+  if (event && event.clientX) {
+    x = `${event.clientX}px`;
+    y = `${event.clientY}px`;
+  } else {
+    const btn = document.getElementById('theme-btn');
+    if (btn) {
+      const rect = btn.getBoundingClientRect();
+      x = `${rect.left + rect.width / 2}px`;
+      y = `${rect.top + rect.height / 2}px`;
+    }
+  }
+
+  // Set CSS variables on lighting overlay
+  const overlay = document.getElementById('theme-lighting-overlay');
+  if (overlay) {
+    overlay.style.setProperty('--toggle-x', x);
+    overlay.style.setProperty('--toggle-y', y);
+    overlay.className = '';
+    // Trigger illumination wave
+    requestAnimationFrame(() => {
+      overlay.classList.add(next === 'light' ? 'active-to-light' : 'active-to-dark');
+    });
+  }
 
   // Add smooth global transition class to all elements
   document.documentElement.classList.add('theme-transitioning');
@@ -1557,23 +1602,36 @@ function toggleTheme() {
   // Rotate theme icon with smooth spring effect
   const iconWrap = document.getElementById('theme-icon-container');
   if (iconWrap) {
-    iconWrap.style.transform = 'rotate(180deg) scale(0.75)';
+    iconWrap.style.transform = 'rotate(180deg) scale(0.7)';
     setTimeout(() => {
       iconWrap.style.transform = 'rotate(360deg) scale(1)';
-    }, 220);
+    }, 240);
     setTimeout(() => {
       iconWrap.style.transform = '';
-    }, 500);
+    }, 550);
   }
 
   applyTheme(next);
   showToast(next === 'light' ? '☀️ Светлая тема включена' : '🌙 Тёмная тема включена');
 
-  // Remove transition class after animation finishes
+  // Fade out lighting overlay and transition class smoothly
+  if (themeLightTimer) clearTimeout(themeLightTimer);
+  themeLightTimer = setTimeout(() => {
+    if (overlay) {
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        if (overlay) {
+          overlay.className = '';
+          overlay.style.opacity = '';
+        }
+      }, 300);
+    }
+  }, 420);
+
   if (themeTransitionTimer) clearTimeout(themeTransitionTimer);
   themeTransitionTimer = setTimeout(() => {
     document.documentElement.classList.remove('theme-transitioning');
-  }, 460);
+  }, 560);
 }
 
 
