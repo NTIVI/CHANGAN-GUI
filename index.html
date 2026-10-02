@@ -297,6 +297,28 @@
     .hero-forecast-item .fc-temp { font-size: 14px; font-weight: 800; color: var(--text); }
     .hero-forecast-item.now .fc-temp { color: #FF6B00; }
     .hero-day-tabs { display: flex; gap: 6px; padding: 10px 16px 0; flex-wrap: wrap; }
+
+    /* === NOTES & CALENDAR MODAL === */
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-day-header { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); padding: 5px 0; text-transform: uppercase; }
+    .cal-day-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; border: 1.5px solid transparent; position: relative; background: var(--bg3); }
+    .cal-day-cell:hover:not(.empty):not(.active) { background: var(--bg4); border-color: rgba(59,130,246,0.5); color: #3B82F6; }
+    .cal-day-cell.other-month { opacity: 0.3; color: var(--text-dim); }
+    .cal-day-cell.active { background: linear-gradient(135deg, #3B82F6, #1D4ED8) !important; color: white !important; font-weight: 800; box-shadow: 0 4px 14px rgba(59,130,246,0.4); border-color: #93C5FD !important; }
+    .cal-day-cell.today:not(.active) { border-color: rgba(59,130,246,0.6); background: rgba(59,130,246,0.1); color: #3B82F6; font-weight: 700; }
+    .cal-day-dot { width: 5px; height: 5px; border-radius: 50%; background: #FF6B00; position: absolute; bottom: 3px; box-shadow: 0 0 4px #FF6B00; }
+    .cal-day-cell.active .cal-day-dot { background: #FFFFFF; box-shadow: 0 0 4px #FFFFFF; }
+    
+    .reminder-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 12px; transition: all 0.2s ease; }
+    .reminder-card:hover { border-color: rgba(59,130,246,0.4); transform: translateY(-1px); }
+    .reminder-card.pending { border-left: 4px solid #3B82F6; }
+    .reminder-card.triggered { border-left: 4px solid #10B981; opacity: 0.85; }
+    
+    /* Car Screen Alert Banner */
+    #reminder-alert-popup { position: fixed; inset: 0; z-index: 10001; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.25s ease; }
+    .reminder-alert-card { background: var(--bg2); border: 2px solid #FF6B00; border-radius: 24px; max-width: 520px; width: 100%; padding: 28px 24px; box-shadow: 0 0 60px rgba(255,107,0,0.35); text-align: center; }
+    .bell-ring-anim { animation: bellShake 1.2s infinite ease-in-out; transform-origin: top center; display: inline-block; }
+    @keyframes bellShake { 0%, 100% { transform: rotate(0); } 20%, 60% { transform: rotate(16deg); } 40%, 80% { transform: rotate(-16deg); } }
   </style>
 </head>
 
@@ -703,6 +725,12 @@
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
               <span>Погода</span>
             </button>
+            <!-- Кнопка Запись -->
+            <button onclick="event.stopPropagation(); openNotesModal();" id="notes-hero-btn" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0" style="background:rgba(59,130,246,0.12); color:#3B82F6; border:1px solid rgba(59,130,246,0.3); cursor:pointer;">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>Запись</span>
+              <span id="notes-badge" class="hidden" style="background:#3B82F6; color:white; font-size:9px; font-weight:900; border-radius:99px; padding:0 5px; min-width:16px; text-align:center; line-height:16px;"></span>
+            </button>
           </div>
           <div class="hero-weather-meta">
             <span class="hero-weather-tag" id="hero-feels">Ощущается --°</span>
@@ -1022,6 +1050,105 @@
 <div id="toast-container" style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:9990; display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none;"></div>
 
 <!-- ═══════════════════════════════════════════════════
+     NOTES / REMINDER MODAL
+════════════════════════════════════════════════════ -->
+<div id="notes-modal" class="modal-overlay hidden" onclick="event.target===this&&closeNotesModal()">
+  <div class="modal-box p-5 sm:p-6" style="width:96vw; max-width:860px;" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8); color:white; box-shadow:0 2px 12px rgba(59,130,246,0.4);">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div>
+          <div class="font-bold text-base">Запись и напоминания</div>
+          <div class="text-xs" style="color:var(--text-muted);">Создайте напоминание — оно появится на экране вовремя</div>
+        </div>
+      </div>
+      <button onclick="closeNotesModal()" class="nav-btn p-2" title="Закрыть">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Two-column layout -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px;" id="notes-grid">
+
+      <!-- LEFT: Calendar + Form -->
+      <div style="display:flex; flex-direction:column; gap:14px;">
+
+        <!-- Month navigation header -->
+        <div class="flex items-center justify-between" style="background:var(--bg3); border:1px solid var(--border); border-radius:14px; padding:10px 14px;">
+          <button onclick="calNavMonth(-1)" class="nav-btn p-1.5">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div id="cal-month-label" class="font-bold text-sm" style="color:var(--text);"></div>
+          <button onclick="calNavMonth(1)" class="nav-btn p-1.5">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div style="background:var(--bg3); border:1px solid var(--border); border-radius:14px; padding:10px;">
+          <div class="cal-grid mb-1">
+            <div class="cal-day-header">Пн</div>
+            <div class="cal-day-header">Вт</div>
+            <div class="cal-day-header">Ср</div>
+            <div class="cal-day-header">Чт</div>
+            <div class="cal-day-header">Пт</div>
+            <div class="cal-day-header" style="color:#EF4444;">Сб</div>
+            <div class="cal-day-header" style="color:#EF4444;">Вс</div>
+          </div>
+          <div class="cal-grid" id="cal-days-grid"></div>
+        </div>
+
+        <!-- Time picker -->
+        <div style="background:var(--bg3); border:1px solid var(--border); border-radius:14px; padding:12px 14px;">
+          <div class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--text-muted);">⏰ Время напоминания</div>
+          <input type="time" id="notes-time-input" class="form-input" style="font-size:20px; font-weight:800; color:#3B82F6; text-align:center; letter-spacing:0.05em; cursor:pointer;" />
+        </div>
+
+        <!-- Note text input -->
+        <div style="background:var(--bg3); border:1px solid var(--border); border-radius:14px; padding:12px 14px;">
+          <div class="text-xs font-bold uppercase tracking-wider mb-2" style="color:var(--text-muted);">✏️ Текст напоминания</div>
+          <textarea id="notes-text-input" class="form-input" rows="3" placeholder="Введите текст напоминания..." style="resize:none; font-size:14px;"></textarea>
+        </div>
+
+        <!-- Save button -->
+        <button onclick="saveReminder()" class="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8); color:white; border:none; cursor:pointer; box-shadow:0 4px 14px rgba(59,130,246,0.35);">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span id="notes-save-btn-label">Сохранить</span>
+        </button>
+        <button id="notes-cancel-edit-btn" onclick="cancelEditReminder()" class="hidden w-full py-2 rounded-xl font-bold text-xs" style="background:rgba(239,68,68,0.12); color:#EF4444; border:1px solid rgba(239,68,68,0.25); cursor:pointer;">
+          ✕ Отменить редактирование
+        </button>
+      </div>
+
+      <!-- RIGHT: Saved reminders list -->
+      <div style="display:flex; flex-direction:column; gap:10px; max-height:520px; overflow-y:auto;">
+        <div class="text-xs font-bold uppercase tracking-wider" style="color:var(--text-muted);">📋 Сохранённые напоминания</div>
+        <div id="notes-reminders-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     CAR SCREEN REMINDER ALERT
+════════════════════════════════════════════════════ -->
+<div id="reminder-alert-popup" style="display:none;" onclick="dismissReminderAlert()">
+  <div class="reminder-alert-card" onclick="event.stopPropagation()">
+    <div class="bell-ring-anim" style="font-size:52px; display:block; margin-bottom:14px;">🔔</div>
+    <div style="font-size:13px; font-weight:700; color:#FF6B00; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">Напоминание</div>
+    <div id="reminder-alert-text" style="font-size:20px; font-weight:800; color:var(--text); line-height:1.4; margin-bottom:6px;"></div>
+    <div id="reminder-alert-time" style="font-size:13px; color:var(--text-muted); margin-bottom:22px;"></div>
+    <button onclick="dismissReminderAlert()" style="background:linear-gradient(135deg,#FF6B00,#CC5500); color:white; border:none; border-radius:14px; padding:12px 36px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 4px 16px rgba(255,107,0,0.4);">
+      Закрыть
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
      SCRIPTS
 ════════════════════════════════════════════════════ -->
 <script>
@@ -1036,6 +1163,14 @@ let weatherData = null;
 let currentWeatherDay = 0;
 let contacts = JSON.parse(localStorage.getItem('ntivi_contacts') || '[]');
 let currentDialerTab = 'dialer';
+
+// ─── REMINDER STATE ───────────────────────────────────
+let reminders = JSON.parse(localStorage.getItem('ntivi_reminders') || '[]');
+let calViewYear  = new Date().getFullYear();
+let calViewMonth = new Date().getMonth(); // 0-based
+let calSelectedDate = null; // 'YYYY-MM-DD'
+let editingReminderId = null;
+let pendingAlerts = []; // queue of triggered reminders to show one by one
 
 // ════════════════════════════════════════════
 // ACTIVATION SYSTEM
@@ -1859,6 +1994,317 @@ function openBluetooth() {
 function closeFabMenu() {}
 
 // ════════════════════════════════════════════
+// NOTES & REMINDERS ENGINE
+// ════════════════════════════════════════════
+
+// ── Month names (Russian) ──────────────────
+const RU_MONTHS_FULL = ['Январь','Февраль','Март','Апрель','Май','Июнь',
+                        'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const RU_MONTHS_SHORT = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+
+// ── Modal open / close ─────────────────────
+function openNotesModal() {
+  // Reset to current month if nothing selected
+  const now = new Date();
+  calViewYear  = now.getFullYear();
+  calViewMonth = now.getMonth();
+  if (!calSelectedDate) {
+    calSelectedDate = now.toISOString().slice(0, 10);
+  }
+  // Default time = next full hour
+  const timeInput = document.getElementById('notes-time-input');
+  if (timeInput && !timeInput.value) {
+    const h = String((now.getHours() + 1) % 24).padStart(2, '0');
+    timeInput.value = `${h}:00`;
+  }
+  renderCalendar();
+  renderRemindersList();
+  document.getElementById('notes-modal').classList.remove('hidden');
+}
+
+function closeNotesModal() {
+  document.getElementById('notes-modal').classList.add('hidden');
+}
+
+// ── Calendar rendering ─────────────────────
+function renderCalendar() {
+  const label = document.getElementById('cal-month-label');
+  if (label) label.textContent = `${RU_MONTHS_FULL[calViewMonth]} ${calViewYear}`;
+
+  const grid = document.getElementById('cal-days-grid');
+  if (!grid) return;
+
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+
+  // First day of shown month
+  const firstDay = new Date(calViewYear, calViewMonth, 1);
+  // Day of week for first (0=Sun..6=Sat → need Mon=0)
+  let startDow = firstDay.getDay(); // 0=Sun
+  startDow = (startDow === 0) ? 6 : startDow - 1; // Mon-based
+
+  // Last day of shown month
+  const lastDay = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+
+  // Days that have reminders
+  const reminderDates = new Set(reminders.map(r => r.date));
+
+  let html = '';
+
+  // Leading empty cells
+  for (let i = 0; i < startDow; i++) {
+    html += `<div class="cal-day-cell empty" style="background:transparent; border-color:transparent;"></div>`;
+  }
+
+  for (let d = 1; d <= lastDay; d++) {
+    const dateStr = `${calViewYear}-${String(calViewMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday   = dateStr === todayStr;
+    const isActive  = dateStr === calSelectedDate;
+    const hasDot    = reminderDates.has(dateStr);
+    const isWeekend = (() => {
+      const wd = new Date(calViewYear, calViewMonth, d).getDay();
+      return wd === 0 || wd === 6;
+    })();
+
+    let cls = 'cal-day-cell';
+    if (isActive) cls += ' active';
+    else if (isToday) cls += ' today';
+
+    let dotHtml = hasDot ? '<span class="cal-day-dot"></span>' : '';
+    let color = isWeekend && !isActive ? ' style="color:#EF4444;"' : '';
+
+    html += `<div class="${cls}"${color} onclick="selectCalDay('${dateStr}')">${d}${dotHtml}</div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function calNavMonth(delta) {
+  calViewMonth += delta;
+  if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+  if (calViewMonth < 0)  { calViewMonth = 11; calViewYear--; }
+  renderCalendar();
+}
+
+function selectCalDay(dateStr) {
+  calSelectedDate = dateStr;
+  renderCalendar();
+}
+
+// ── Save / Edit reminder ───────────────────
+function saveReminder() {
+  const timeVal  = (document.getElementById('notes-time-input')?.value || '').trim();
+  const textVal  = (document.getElementById('notes-text-input')?.value || '').trim();
+
+  if (!calSelectedDate) { showToast('⚠️ Выберите дату в календаре'); return; }
+  if (!timeVal)          { showToast('⚠️ Укажите время'); return; }
+  if (!textVal)          { showToast('⚠️ Введите текст напоминания'); return; }
+
+  if (editingReminderId !== null) {
+    // Update existing
+    const idx = reminders.findIndex(r => r.id === editingReminderId);
+    if (idx !== -1) {
+      reminders[idx].date      = calSelectedDate;
+      reminders[idx].time      = timeVal;
+      reminders[idx].text      = textVal;
+      reminders[idx].triggered = false; // reset so it can fire again if future
+    }
+    editingReminderId = null;
+    document.getElementById('notes-save-btn-label').textContent = 'Сохранить';
+    document.getElementById('notes-cancel-edit-btn').classList.add('hidden');
+    showToast('✅ Напоминание обновлено');
+  } else {
+    // New reminder
+    reminders.push({
+      id:        Date.now(),
+      date:      calSelectedDate,
+      time:      timeVal,
+      text:      textVal,
+      triggered: false
+    });
+    showToast('✅ Напоминание сохранено');
+  }
+
+  saveRemindersToStorage();
+  renderCalendar();
+  renderRemindersList();
+  updateNotesBadge();
+
+  // Clear form
+  document.getElementById('notes-text-input').value = '';
+}
+
+function cancelEditReminder() {
+  editingReminderId = null;
+  document.getElementById('notes-save-btn-label').textContent = 'Сохранить';
+  document.getElementById('notes-cancel-edit-btn').classList.add('hidden');
+  document.getElementById('notes-text-input').value = '';
+}
+
+function deleteReminder(id) {
+  reminders = reminders.filter(r => r.id !== id);
+  if (editingReminderId === id) cancelEditReminder();
+  saveRemindersToStorage();
+  renderCalendar();
+  renderRemindersList();
+  updateNotesBadge();
+  showToast('🗑️ Напоминание удалено');
+}
+
+function editReminder(id) {
+  const r = reminders.find(r => r.id === id);
+  if (!r) return;
+  editingReminderId = id;
+  calSelectedDate = r.date;
+  // Navigate calendar to the reminder's month
+  const parts = r.date.split('-');
+  calViewYear  = parseInt(parts[0]);
+  calViewMonth = parseInt(parts[1]) - 1;
+
+  document.getElementById('notes-time-input').value = r.time;
+  document.getElementById('notes-text-input').value = r.text;
+  document.getElementById('notes-save-btn-label').textContent = 'Обновить';
+  document.getElementById('notes-cancel-edit-btn').classList.remove('hidden');
+
+  renderCalendar();
+  // Scroll modal left column into view
+  document.getElementById('notes-modal').scrollTop = 0;
+}
+
+// ── Render reminders list ──────────────────
+function renderRemindersList() {
+  const container = document.getElementById('notes-reminders-list');
+  if (!container) return;
+
+  if (reminders.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:40px 0; color:var(--text-dim);">
+        <div style="font-size:40px; margin-bottom:12px;">📝</div>
+        <div style="font-size:13px; font-weight:600;">Напоминаний пока нет</div>
+        <div style="font-size:11px; margin-top:4px;">Выберите дату, время и введите текст</div>
+      </div>`;
+    return;
+  }
+
+  // Sort: upcoming first, then past
+  const sorted = [...reminders].sort((a, b) => {
+    return (a.date + 'T' + a.time).localeCompare(b.date + 'T' + b.time);
+  });
+
+  container.innerHTML = sorted.map(r => {
+    const [y, mo, d] = r.date.split('-');
+    const monthName = RU_MONTHS_SHORT[parseInt(mo) - 1];
+    const dateLabel = `${parseInt(d)} ${monthName} ${y}`;
+    const status = r.triggered
+      ? `<span style="font-size:10px; font-weight:700; color:#10B981; background:rgba(16,185,129,0.12); border-radius:6px; padding:2px 6px;">✓ Выполнено</span>`
+      : `<span style="font-size:10px; font-weight:700; color:#3B82F6; background:rgba(59,130,246,0.12); border-radius:6px; padding:2px 6px;">⏳ Ожидает</span>`;
+
+    return `
+      <div class="reminder-card ${r.triggered ? 'triggered' : 'pending'}">
+        <div class="flex items-start justify-between gap-2 mb-1.5">
+          <div>
+            <div style="font-size:12px; font-weight:700; color:#3B82F6;">📅 ${dateLabel} &nbsp;⏰ ${r.time}</div>
+          </div>
+          ${status}
+        </div>
+        <div style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:10px; line-height:1.4;">${escHtml(r.text)}</div>
+        <div class="flex gap-2">
+          <button onclick="editReminder(${r.id})" style="flex:1; padding:6px; border-radius:9px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.25); color:#3B82F6; font-size:11px; font-weight:700; cursor:pointer;">✏️ Изменить</button>
+          <button onclick="deleteReminder(${r.id})" style="flex:1; padding:6px; border-radius:9px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); color:#EF4444; font-size:11px; font-weight:700; cursor:pointer;">🗑️ Удалить</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Badge count on hero button ─────────────
+function updateNotesBadge() {
+  const badge = document.getElementById('notes-badge');
+  if (!badge) return;
+  const pending = reminders.filter(r => !r.triggered).length;
+  if (pending > 0) {
+    badge.textContent = pending;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+// ── Storage ────────────────────────────────
+function saveRemindersToStorage() {
+  localStorage.setItem('ntivi_reminders', JSON.stringify(reminders));
+}
+
+// ── Due-check loop (every 5 seconds) ──────
+function checkDueReminders() {
+  const nowYerevan = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Yerevan' }));
+  const nowDate = nowYerevan.toISOString().slice(0, 10);
+  const nowH    = String(nowYerevan.getHours()).padStart(2, '0');
+  const nowM    = String(nowYerevan.getMinutes()).padStart(2, '0');
+  const nowTime = `${nowH}:${nowM}`;
+
+  let changed = false;
+  reminders.forEach(r => {
+    if (!r.triggered && r.date === nowDate && r.time === nowTime) {
+      r.triggered = true;
+      changed = true;
+      pendingAlerts.push(r);
+    }
+  });
+
+  if (changed) {
+    saveRemindersToStorage();
+    updateNotesBadge();
+    renderRemindersList();
+    showNextAlert();
+  }
+}
+
+let alertVisible = false;
+function showNextAlert() {
+  if (alertVisible || pendingAlerts.length === 0) return;
+  const r = pendingAlerts.shift();
+  alertVisible = true;
+
+  const popup   = document.getElementById('reminder-alert-popup');
+  const txtEl   = document.getElementById('reminder-alert-text');
+  const timeEl  = document.getElementById('reminder-alert-time');
+
+  if (txtEl)  txtEl.textContent  = r.text;
+  if (timeEl) {
+    const [y, mo, d] = r.date.split('-');
+    timeEl.textContent = `${parseInt(d)} ${RU_MONTHS_SHORT[parseInt(mo)-1]} ${y}, ${r.time}`;
+  }
+  if (popup) popup.style.display = 'flex';
+
+  // Play notification beep
+  playAlertBeep();
+}
+
+function dismissReminderAlert() {
+  const popup = document.getElementById('reminder-alert-popup');
+  if (popup) popup.style.display = 'none';
+  alertVisible = false;
+  // Show next queued alert after a short delay
+  setTimeout(showNextAlert, 500);
+}
+
+function playAlertBeep() {
+  try {
+    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine'; osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+    osc.start(); osc.stop(ctx.currentTime + 0.8);
+  } catch (e) {}
+}
+
+// Start due-check loop
+setInterval(checkDueReminders, 5000);
+
+// ════════════════════════════════════════════
 // UTILITIES
 // ════════════════════════════════════════════
 function reloadPage() {
@@ -1919,6 +2365,8 @@ document.addEventListener('keydown', e => {
     closeWeatherModal();
     closeRadioModal();
     closeSupportModal();
+    closeNotesModal();
+    dismissReminderAlert();
     closePanels();
   }
 });
@@ -1934,6 +2382,16 @@ document.addEventListener('DOMContentLoaded', () => {
   initActivation();
   // If already activated, also init dialer tab display
   switchDialerTab('dialer');
+  // Init reminders badge
+  updateNotesBadge();
+  // Responsive notes grid
+  const mq = window.matchMedia('(max-width: 640px)');
+  function notesGridResponsive() {
+    const g = document.getElementById('notes-grid');
+    if (g) g.style.gridTemplateColumns = mq.matches ? '1fr' : '1fr 1fr';
+  }
+  mq.addEventListener('change', notesGridResponsive);
+  notesGridResponsive();
 });
 </script>
 </body>
