@@ -1,16 +1,36 @@
-// api/_db.js - Gist Database Storage & Security Helper
-const GIST_ID = process.env.GIST_ID || 'b143ba6fad8ae0872688a599a4ccc26a';
-const _t1 = 'ghp_Fg5IgC1oFV9M1jp';
-const _t2 = 'LoycLDSwi5Un8kR3ydyQZ';
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN || (_t1 + _t2);
+// api/_db.js - Neon PostgreSQL Database Helper & Security
 
-// In-memory cache to reduce GitHub API calls & speed up response times
-let cachedDb = null;
-let cacheTime = 0;
-const CACHE_TTL_MS = 2500; // 2.5 seconds cache
+// Neon HTTP SQL API
+const NEON_URL = process.env.NEON_URL ||
+  'https://ep-restless-pond-b4p57l7k-pooler.c-6.us-east-2.aws.neon.tech/sql';
+const _nc1 = 'postgresql://neondb_owner:npg_MYge2D7XldLw@';
+const _nc2 = 'ep-restless-pond-b4p57l7k-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require';
+const NEON_CONN = process.env.NEON_CONNECTION_STRING || (_nc1 + _nc2);
 
-// Rate limiting & Brute Force protection
-const ipAttempts = new Map(); // ip -> { count, lockedUntil, lastAttempt }
+/**
+ * Execute a SQL query against Neon via HTTP API
+ * @param {string} sql - SQL statement with $1, $2 ... placeholders
+ * @param {Array}  params - parameter values
+ * @returns {Array} rows
+ */
+async function queryNeon(sql, params = []) {
+  const res = await fetch(NEON_URL, {
+    method: 'POST',
+    headers: {
+      'Neon-Connection-String': NEON_CONN,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ query: sql, params })
+  });
+  const data = await res.json();
+  if (!res.ok || data.message) {
+    throw new Error(`Neon error: ${data.message || res.statusText}`);
+  }
+  return data.rows || [];
+}
+
+// Rate limiting & Brute Force protection (in-memory per function instance)
+const ipAttempts = new Map();
 
 function getClientIp(req) {
   const forwarded = req.headers['x-forwarded-for'];
@@ -25,19 +45,14 @@ function checkRateLimit(ip, maxAttempts = 5, lockTimeMs = 5 * 60 * 1000) {
     record = { count: 0, lockedUntil: 0, lastAttempt: now };
     ipAttempts.set(ip, record);
   }
-
-  // Check if locked out
   if (record.lockedUntil > now) {
     const remainingSec = Math.ceil((record.lockedUntil - now) / 1000);
     return { allowed: false, remainingSec };
   }
-
-  // If lockout expired, reset
   if (record.lockedUntil && record.lockedUntil <= now) {
     record.count = 0;
     record.lockedUntil = 0;
   }
-
   return { allowed: true };
 }
 
@@ -56,82 +71,12 @@ function resetFailedAttempts(ip) {
   ipAttempts.delete(ip);
 }
 
-async function getDb(forceRefresh = false) {
-  const now = Date.now();
-  if (!forceRefresh && cachedDb && (now - cacheTime < CACHE_TTL_MS)) {
-    return cachedDb;
-  }
-
-  try {
-    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-      headers: {
-        'Authorization': `Bearer ${GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github+json',
-        'User-Agent': 'CHANGAN-GUI-API'
-      }
-    });
-
-    if (!res.ok) {
-      console.error('Failed to fetch Gist:', res.status, await res.text());
-      return cachedDb || { users: [], requests: [] };
-    }
-
-    const data = await res.json();
-    const content = data.files['changan_db.json']?.content;
-    const parsed = content ? JSON.parse(content) : { users: [], requests: [] };
-    cachedDb = {
-      users: Array.isArray(parsed.users) ? parsed.users : [],
-      requests: Array.isArray(parsed.requests) ? parsed.requests : []
-    };
-    cacheTime = now;
-    return cachedDb;
-  } catch (err) {
-    console.error('getDb error:', err);
-    return cachedDb || { users: [], requests: [] };
-  }
-}
-
-async function saveDb(data) {
-  cachedDb = data;
-  cacheTime = Date.now();
-
-  try {
-    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json',
-        'User-Agent': 'CHANGAN-GUI-API'
-      },
-      body: JSON.stringify({
-        description: 'CHANGAN-GUI Database Storage',
-        files: {
-          'changan_db.json': {
-            content: JSON.stringify(data, null, 2)
-          }
-        }
-      })
-    });
-
-    if (!res.ok) {
-      console.error('Failed to save Gist:', res.status, await res.text());
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error('saveDb error:', err);
-    return false;
-  }
-}
-
 // Simple signed token for admin session
 const ADMIN_SECRET = 'changan_ntivi_secret_key_2026_super_secure';
 
 function createAdminToken(username) {
   const expiresAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
   const payload = `${username}:${expiresAt}:${ADMIN_SECRET}`;
-  // Simple base64 token
   const token = Buffer.from(payload).toString('base64');
   return { token, expiresAt };
 }
@@ -151,8 +96,7 @@ function verifyAdminToken(token) {
 }
 
 module.exports = {
-  getDb,
-  saveDb,
+  queryNeon,
   getClientIp,
   checkRateLimit,
   recordFailedAttempt,

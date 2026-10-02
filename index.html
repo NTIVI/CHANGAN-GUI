@@ -42,23 +42,42 @@
   <style>
     * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; user-select: none; box-sizing: border-box; }
     html { min-height: 100%; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    body { min-height: 100%; margin: 0; padding: 0; background-color: #0a0a0a; color: #e8e8e8; font-family: 'Inter', ui-sans-serif, system-ui; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+    body { min-height: 100%; margin: 0; padding: 0; background-color: var(--bg); color: var(--text); font-family: 'Inter', ui-sans-serif, system-ui; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; transition: background 0.3s, color 0.3s; }
     input, textarea, select { user-select: text; -webkit-user-select: text; }
     ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: #FF6B00; border-radius: 2px; }
 
+    /* ── THEME TOKENS ── */
+    :root {
+      --bg: #0a0a0a; --bg2: #111111; --bg3: #161616; --bg4: #1a1a1a;
+      --border: #222222; --border2: #2a2a2a; --border3: #1f1f1f;
+      --text: #e8e8e8; --text-muted: #888888; --text-dim: #555555;
+      --card-hover: rgba(255,107,0,0.04);
+      --search-bg: #111111; --hero-gradient: linear-gradient(135deg, #111111 0%, #0d0d0d 100%);
+      --header-bg: rgba(10,10,10,0.97); --panel-bg: #0d0d0d;
+    }
+    [data-theme="light"] {
+      --bg: #f0f2f5; --bg2: #ffffff; --bg3: #f7f8fa; --bg4: #ebebeb;
+      --border: #e0e0e0; --border2: #d0d0d0; --border3: #e8e8e8;
+      --text: #1a1a1a; --text-muted: #666666; --text-dim: #999999;
+      --card-hover: rgba(255,107,0,0.06);
+      --search-bg: #ffffff; --hero-gradient: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+      --header-bg: rgba(240,242,245,0.97); --panel-bg: #f7f8fa;
+    }
+
+
     /* === CARD TILES === */
-    .card-tile { background: #111111; border: 1px solid #222222; border-radius: 16px; transition: all 0.18s ease; cursor: pointer; position: relative; overflow: hidden; }
+    .card-tile { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; transition: all 0.18s ease; cursor: pointer; position: relative; overflow: hidden; }
     .card-tile::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,107,0,0.04) 0%, transparent 60%); opacity: 0; transition: opacity 0.2s; }
     .card-tile:hover::before, .card-tile:active::before { opacity: 1; }
-    .card-tile:hover { border-color: #FF6B00; box-shadow: 0 0 20px rgba(255,107,0,0.25), 0 4px 24px rgba(0,0,0,0.5); transform: translateY(-2px); }
+    .card-tile:hover { border-color: #FF6B00; box-shadow: 0 0 20px rgba(255,107,0,0.25), 0 4px 24px rgba(0,0,0,0.15); transform: translateY(-2px); }
     .card-tile:active { transform: scale(0.95); border-color: #CC5500; }
 
     /* === NAV BUTTON === */
-    .nav-btn { background: #111111; border: 1px solid #222222; border-radius: 12px; transition: all 0.15s ease; cursor: pointer; }
-    .nav-btn:hover { border-color: #FF6B00; background: #1a1a1a; }
-    .nav-btn:active { transform: scale(0.94); background: #0f0f0f; }
+    .nav-btn { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; transition: all 0.15s ease; cursor: pointer; color: var(--text-muted); }
+    .nav-btn:hover { border-color: #FF6B00; background: var(--bg4); }
+    .nav-btn:active { transform: scale(0.94); }
 
     .orange-btn { background: linear-gradient(135deg, #FF6B00, #CC5500); border-radius: 12px; transition: all 0.15s ease; cursor: pointer; box-shadow: 0 4px 14px rgba(255,107,0,0.3); }
     .orange-btn:hover { background: linear-gradient(135deg, #FF8C33, #FF6B00); box-shadow: 0 6px 20px rgba(255,107,0,0.4); transform: translateY(-1px); }
@@ -69,19 +88,19 @@
 
     /* === TYPOGRAPHY === */
     .logo-text { font-size: clamp(13px, 2vw, 17px); font-weight: 800; letter-spacing: 0.05em; color: #FF6B00; }
-    .logo-sub { font-size: clamp(9px, 1.3vw, 12px); font-weight: 500; color: #888888; letter-spacing: 0.12em; text-transform: uppercase; }
+    .logo-sub { font-size: clamp(9px, 1.3vw, 12px); font-weight: 500; color: var(--text-muted); letter-spacing: 0.12em; text-transform: uppercase; }
     .time-display { font-size: clamp(32px, 6vw, 52px); font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
-    .date-display { font-size: clamp(14px, 2.2vw, 20px); font-weight: 500; color: #888888; letter-spacing: 0.02em; }
+    .date-display { font-size: clamp(14px, 2.2vw, 20px); font-weight: 500; color: var(--text-muted); letter-spacing: 0.02em; }
 
     /* === GPS DOT === */
-    .gps-dot { width: 10px; height: 10px; border-radius: 50%; background: #888; transition: background 0.3s; }
+    .gps-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); transition: background 0.3s; }
     .gps-dot.active { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
     .gps-dot.error { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
 
     /* === SEARCH === */
-    .search-bar { background: #111111; border: 1.5px solid #222222; border-radius: 14px; transition: border-color 0.2s, box-shadow 0.2s; }
+    .search-bar { background: var(--search-bg); border: 1.5px solid var(--border); border-radius: 14px; transition: border-color 0.2s, box-shadow 0.2s; }
     .search-bar:focus-within { border-color: #FF6B00; box-shadow: 0 0 0 3px rgba(255,107,0,0.12); }
-    .search-tag { background: rgba(255,107,0,0.08); border: 1px solid rgba(255,107,0,0.18); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; color: #e8e8e8; transition: all 0.15s; }
+    .search-tag { background: rgba(255,107,0,0.08); border: 1px solid rgba(255,107,0,0.18); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text); transition: all 0.15s; }
     .search-tag:hover { background: rgba(255,107,0,0.18); border-color: #FF6B00; }
 
     /* === APP GRID === */
@@ -91,10 +110,10 @@
 
     /* === MODAL === */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-    .modal-box { background: #111; border: 1px solid #222; border-radius: 20px; max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .modal-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
     /* === TOAST === */
-    .toast { background: #1a1a1a; border: 1px solid #FF6B00; border-radius: 12px; padding: 12px 20px; font-size: 14px; font-weight: 600; color: #e8e8e8; box-shadow: 0 4px 20px rgba(0,0,0,0.5); animation: slideUp 0.3s ease, fadeOut 0.3s ease 2.7s forwards; margin-bottom: 8px; }
+    .toast { background: var(--bg4); border: 1px solid #FF6B00; border-radius: 12px; padding: 12px 20px; font-size: 14px; font-weight: 600; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,0.3); animation: slideUp 0.3s ease, fadeOut 0.3s ease 2.7s forwards; margin-bottom: 8px; }
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-8px); } }
 
     /* === RIPPLE === */
@@ -110,40 +129,40 @@
     @keyframes fabPulse { 0%, 100% { box-shadow: 0 4px 20px rgba(255,107,0,0.5), 0 0 0 0 rgba(255,107,0,0.35); } 50% { box-shadow: 0 4px 20px rgba(255,107,0,0.5), 0 0 0 10px rgba(255,107,0,0); } }
 
     /* === FAB MENU === */
-    #fab-menu { position: fixed; z-index: 8886; background: #111111; border: 1px solid rgba(255,107,0,0.35); border-radius: 18px; padding: 8px; min-width: 220px; box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 20px rgba(255,107,0,0.15); display: none; flex-direction: column; gap: 2px; backdrop-filter: blur(12px); animation: fabMenuIn 0.2s ease; }
+    #fab-menu { position: fixed; z-index: 8886; background: var(--bg2); border: 1px solid rgba(255,107,0,0.35); border-radius: 18px; padding: 8px; min-width: 220px; box-shadow: 0 8px 40px rgba(0,0,0,0.3), 0 0 20px rgba(255,107,0,0.15); display: none; flex-direction: column; gap: 2px; backdrop-filter: blur(12px); animation: fabMenuIn 0.2s ease; }
     #fab-menu.open { display: flex; }
     @keyframes fabMenuIn { from { opacity: 0; transform: scale(0.85) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    .fab-menu-header { display: flex; align-items: center; gap: 8px; padding: 8px 10px 10px; border-bottom: 1px solid #1f1f1f; margin-bottom: 4px; }
+    .fab-menu-header { display: flex; align-items: center; gap: 8px; padding: 8px 10px 10px; border-bottom: 1px solid var(--border3); margin-bottom: 4px; }
     .fab-menu-title { font-size: 12px; font-weight: 700; color: #FF6B00; letter-spacing: 0.1em; text-transform: uppercase; }
-    .fab-menu-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; cursor: pointer; transition: background 0.15s; font-size: 13px; font-weight: 600; color: #e8e8e8; border: none; background: transparent; width: 100%; text-align: left; }
+    .fab-menu-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; cursor: pointer; transition: background 0.15s; font-size: 13px; font-weight: 600; color: var(--text); border: none; background: transparent; width: 100%; text-align: left; }
     .fab-menu-item:hover, .fab-menu-item:active { background: rgba(255,107,0,0.1); color: #FF6B00; }
     .fab-menu-item .fab-menu-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
-    .fab-menu-divider { height: 1px; background: #1f1f1f; margin: 4px 0; }
+    .fab-menu-divider { height: 1px; background: var(--border3); margin: 4px 0; }
 
     /* === TOGGLE === */
     .toggle-switch { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { position: absolute; inset: 0; background: #2a2a2a; border-radius: 26px; cursor: pointer; transition: background 0.25s; }
-    .toggle-slider:before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #666; border-radius: 50%; transition: transform 0.25s, background 0.25s; }
+    .toggle-slider { position: absolute; inset: 0; background: var(--border2); border-radius: 26px; cursor: pointer; transition: background 0.25s; }
+    .toggle-slider:before { content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: var(--text-muted); border-radius: 50%; transition: transform 0.25s, background 0.25s; }
     .toggle-switch input:checked + .toggle-slider { background: rgba(255,107,0,0.2); border: 1px solid #FF6B00; }
     .toggle-switch input:checked + .toggle-slider:before { transform: translateX(22px); background: #FF6B00; }
 
     /* === SIDE PANELS === */
-    .side-panel { position: fixed; top: 0; bottom: 0; z-index: 900; background: #0d0d0d; border-color: #1f1f1f; width: min(360px, 92vw); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; overflow: hidden; }
-    .side-panel-left { left: 0; border-right: 1px solid #1f1f1f; transform: translateX(-100%); }
-    .side-panel-right { right: 0; border-left: 1px solid #1f1f1f; transform: translateX(100%); }
+    .side-panel { position: fixed; top: 0; bottom: 0; z-index: 900; background: var(--panel-bg); border-color: var(--border3); width: min(360px, 92vw); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; overflow: hidden; }
+    .side-panel-left { left: 0; border-right: 1px solid var(--border3); transform: translateX(-100%); }
+    .side-panel-right { right: 0; border-left: 1px solid var(--border3); transform: translateX(100%); }
     .side-panel.open { transform: translateX(0); }
     .panel-backdrop { position: fixed; inset: 0; z-index: 899; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); display: none; }
     .panel-backdrop.open { display: block; }
-    .panel-header { padding: 16px; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .panel-header { padding: 16px; border-bottom: 1px solid var(--border3); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
     .panel-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px; }
 
     /* === DIALER === */
-    .dial-key { background: #1a1a1a; border: 1px solid #262626; border-radius: 14px; padding: 14px; text-align: center; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 1px; }
-    .dial-key:hover { background: #222; border-color: #FF6B00; }
+    .dial-key { background: var(--bg4); border: 1px solid var(--border2); border-radius: 14px; padding: 14px; text-align: center; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+    .dial-key:hover { border-color: #FF6B00; }
     .dial-key:active { transform: scale(0.92); background: rgba(255,107,0,0.12); }
     .dial-key-num { font-size: 22px; font-weight: 700; line-height: 1; }
-    .dial-key-sub { font-size: 9px; color: #555; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; min-height: 11px; }
+    .dial-key-sub { font-size: 9px; color: var(--text-dim); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; min-height: 11px; }
 
     /* === CONTACTS === */
     .contact-item { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 12px; cursor: pointer; transition: background 0.15s; }
@@ -153,15 +172,15 @@
     /* === WEATHER === */
     .weather-scroll { display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
     .weather-scroll::-webkit-scrollbar { height: 2px; }
-    .weather-hour { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); min-width: 68px; font-size: 12px; }
+    .weather-hour { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 12px; background: rgba(128,128,128,0.05); border-radius: 12px; border: 1px solid rgba(128,128,128,0.1); min-width: 68px; font-size: 12px; transition: all 0.15s; }
     .weather-hour.current { border-color: rgba(255,107,0,0.4); background: rgba(255,107,0,0.06); }
-    .weather-day-btn { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; border: 1px solid transparent; }
+    .weather-day-btn { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; border: 1px solid transparent; background: transparent; }
     .weather-day-btn.active { background: rgba(255,107,0,0.15); border-color: #FF6B00; color: #FF6B00; }
-    .weather-day-btn:not(.active) { color: #888; }
-    .weather-day-btn:not(.active):hover { color: #fff; background: #161616; }
+    .weather-day-btn:not(.active) { color: var(--text-muted); }
+    .weather-day-btn:not(.active):hover { color: var(--text); background: var(--bg4); }
 
     /* === ACTIVATION GATE === */
-    #activation-gate { position: fixed; inset: 0; z-index: 9999; background: #0a0a0a; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    #activation-gate { position: fixed; inset: 0; z-index: 9999; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 20px; }
     .activation-code { font-size: clamp(32px, 8vw, 52px); font-weight: 900; letter-spacing: 0.25em; color: #FF6B00; font-family: 'Courier New', monospace; background: rgba(255,107,0,0.06); border: 2px dashed rgba(255,107,0,0.35); border-radius: 16px; padding: 18px 28px; text-align: center; }
     .pulse-ring { animation: pulseRing 2s ease-in-out infinite; }
     @keyframes pulseRing { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
@@ -171,10 +190,38 @@
     #user-profile-badge.show { display: flex; }
 
     /* === INPUT STYLE === */
-    .form-input { width: 100%; background: #161616; border: 1.5px solid #2a2a2a; border-radius: 12px; padding: 11px 14px; font-size: 14px; color: #e8e8e8; outline: none; transition: border-color 0.2s; }
+    .form-input { width: 100%; background: var(--bg3); border: 1.5px solid var(--border2); border-radius: 12px; padding: 11px 14px; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.2s; }
     .form-input:focus { border-color: #FF6B00; }
-    .form-input::placeholder { color: #555; }
-    label.form-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 6px; }
+    .form-input::placeholder { color: var(--text-dim); }
+    label.form-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; }
+
+    /* === THEME TOGGLE BUTTON === */
+    #theme-btn { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; background: var(--bg3); border: 1px solid var(--border); flex-shrink: 0; }
+    #theme-btn:hover { border-color: #FF6B00; background: var(--bg4); }
+    #theme-btn:active { transform: scale(0.9); }
+
+    /* === HERO WIDGET REDESIGN === */
+    .hero-widget { border-radius: 20px; overflow: hidden; border: 1px solid var(--border); position: relative; cursor: default; }
+    .hero-top { background: var(--hero-gradient); padding: 20px 20px 16px; display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+    .hero-time-block { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding-right: 16px; border-right: 1px solid var(--border); }
+    .hero-time-main { font-size: clamp(40px, 8vw, 64px); font-weight: 900; letter-spacing: -0.03em; line-height: 1; color: var(--text); }
+    .hero-time-date { font-size: 13px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.02em; margin-top: 4px; }
+    .hero-time-sec { font-size: 13px; font-weight: 400; color: var(--text-dim); }
+    .hero-weather-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .hero-weather-current { display: flex; align-items: center; gap: 10px; }
+    .hero-temp-big { font-size: 38px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; color: var(--text); }
+    .hero-weather-desc { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+    .hero-weather-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-weather-tag { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: rgba(255,107,0,0.1); color: #FF6B00; border: 1px solid rgba(255,107,0,0.2); }
+    .hero-bottom { background: var(--bg2); border-top: 1px solid var(--border); }
+    .hero-forecast-row { display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 10px 16px; scrollbar-width: none; }
+    .hero-forecast-row::-webkit-scrollbar { display: none; }
+    .hero-forecast-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 12px; min-width: 64px; font-size: 11px; font-weight: 600; color: var(--text-muted); transition: all 0.15s; cursor: default; }
+    .hero-forecast-item.now { background: rgba(255,107,0,0.1); border: 1px solid rgba(255,107,0,0.3); color: #FF6B00; }
+    .hero-forecast-item .fc-emoji { font-size: 18px; }
+    .hero-forecast-item .fc-temp { font-size: 14px; font-weight: 800; color: var(--text); }
+    .hero-forecast-item.now .fc-temp { color: #FF6B00; }
+    .hero-day-tabs { display: flex; gap: 6px; padding: 10px 16px 0; flex-wrap: wrap; }
   </style>
 </head>
 
@@ -533,7 +580,13 @@
 
     <!-- Reload -->
     <button onclick="reloadPage()" title="Перезагрузить" class="nav-btn p-2">
-      <svg class="w-4 h-4 text-[#888]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+    </button>
+
+    <!-- Theme toggle -->
+    <button id="theme-btn" onclick="toggleTheme()" title="Сменить тему">
+      <svg id="theme-icon-dark" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="theme-icon-light" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
 
     <!-- Home -->
@@ -550,59 +603,68 @@
   <div id="page-home" class="page-content space-y-5">
 
     <!-- ── HERO: Clock + Weather ── -->
-    <div class="card-tile p-4" style="background: linear-gradient(135deg, #111111 0%, #0d0d0d 100%); cursor: default;">
-      <div class="flex flex-col sm:flex-row gap-4">
-
-        <!-- Clock section -->
-        <div class="flex flex-col gap-1 flex-shrink-0 items-center sm:items-start">
-          <div id="big-time" class="time-display">00:00</div>
-          <div id="big-date" class="date-display">Загрузка...</div>
-          <div id="gps-coords" class="text-xs font-mono mt-1" style="color:#555; min-height:16px;"></div>
+    <div class="hero-widget">
+      <!-- Top section: Clock + Current Weather -->
+      <div class="hero-top">
+        <!-- Clock block -->
+        <div class="hero-time-block">
+          <div id="big-time" class="hero-time-main">00:00</div>
+          <div id="big-time-sec" class="hero-time-sec">:00</div>
+          <div id="big-date" class="hero-time-date">Загрузка...</div>
+          <div id="gps-coords" class="text-xs font-mono mt-1" style="color:var(--text-dim); min-height:14px;"></div>
         </div>
 
-        <!-- Divider -->
-        <div class="sm:block w-px self-stretch hidden" style="background: #1f1f1f;"></div>
-
-        <!-- Weather section -->
-        <div class="flex-1 min-w-0">
-          <!-- Day tabs -->
-          <div class="flex items-center gap-2 mb-3 flex-wrap">
-            <button id="wday-0" onclick="setWeatherDay(0)" class="weather-day-btn active">Сегодня</button>
-            <button id="wday-1" onclick="setWeatherDay(1)" class="weather-day-btn">Завтра</button>
-            <button id="wday-2" onclick="setWeatherDay(2)" class="weather-day-btn">Послезавтра</button>
-            <div id="weather-location" class="ml-auto text-xs text-[#888] flex items-center gap-1">
-              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Ереван
+        <!-- Current weather -->
+        <div class="hero-weather-main">
+          <div class="hero-weather-current">
+            <div id="hero-weather-emoji" class="text-4xl leading-none">🌤️</div>
+            <div>
+              <div class="hero-temp-big"><span id="hero-temp">--</span>°</div>
+              <div id="hero-weather-desc" class="hero-weather-desc">Загрузка...</div>
             </div>
           </div>
-
-          <!-- Hourly scroll -->
-          <div id="weather-scroll" class="weather-scroll">
-            <div class="text-xs text-[#666] py-4 px-2">Загрузка погоды...</div>
+          <div class="hero-weather-meta">
+            <span class="hero-weather-tag" id="hero-feels">Ощущается --°</span>
+            <span class="hero-weather-tag" id="hero-wind">💨 -- м/с</span>
+            <span class="hero-weather-tag" id="hero-humid">💧 --%</span>
+            <span class="hero-weather-tag" style="color:var(--text-muted); background:rgba(128,128,128,0.07); border-color:var(--border);">
+              <svg class="inline w-3 h-3 mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Ереван
+            </span>
           </div>
+        </div>
+      </div>
 
-          <!-- Daily summary -->
-          <div id="weather-daily-summary" class="mt-2 flex items-center gap-3">
-            <div id="weather-summary-emoji" class="text-2xl">🌡️</div>
-            <div class="text-sm text-[#888]" id="weather-summary-text">Загрузка...</div>
+      <!-- Bottom section: Day tabs + Forecast scroll -->
+      <div class="hero-bottom">
+        <div class="hero-day-tabs">
+          <button id="wday-0" onclick="setWeatherDay(0)" class="weather-day-btn active">Сегодня</button>
+          <button id="wday-1" onclick="setWeatherDay(1)" class="weather-day-btn">Завтра</button>
+          <button id="wday-2" onclick="setWeatherDay(2)" class="weather-day-btn">Послезавтра</button>
+        </div>
+        <div id="weather-scroll" class="hero-forecast-row">
+          <div class="hero-forecast-item" style="min-width:100px;">
+            <div class="fc-emoji">⏳</div>
+            <div class="fc-temp" style="font-size:12px; color:var(--text-dim);">Загрузка...</div>
           </div>
         </div>
       </div>
 
       <!-- Search bar -->
-      <div class="mt-4">
+      <div style="padding: 0 16px 16px;">
         <div class="search-bar flex items-center gap-2 px-3 py-2.5">
           <svg class="w-4 h-4 flex-shrink-0" style="color:#FF6B00;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input
             id="search-input"
             type="text"
             placeholder="Поиск или адрес для навигации..."
-            class="flex-1 bg-transparent outline-none text-sm placeholder-[#555]"
+            class="flex-1 bg-transparent outline-none text-sm"
+            style="color:var(--text); caret-color:#FF6B00;"
             onkeydown="handleSearch(event)"
             style="user-select:text;"
           />
           <button onclick="doSearch('nav')" class="flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold" style="background:rgba(255,107,0,0.12); color:#FF6B00; border:1px solid rgba(255,107,0,0.2);">Карты</button>
-          <button onclick="doSearch('yandex')" class="flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold" style="background:rgba(255,255,255,0.05); color:#aaa; border:1px solid #2a2a2a;">Поиск</button>
+          <button onclick="doSearch('yandex')" class="flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold" style="background:rgba(128,128,128,0.07); color:var(--text-muted); border:1px solid var(--border);">Поиск</button>
         </div>
 
         <div class="flex flex-wrap gap-2 mt-2.5">
@@ -614,6 +676,7 @@
         </div>
       </div>
     </div>
+
 
     <!-- ── NAVIGATION SECTION ── -->
     <div id="sec-nav">
@@ -1159,7 +1222,7 @@ async function loadWeather() {
   try {
     const url = 'https://api.open-meteo.com/v1/forecast?' +
       'latitude=40.1811&longitude=44.5136' +
-      '&hourly=temperature_2m,weathercode,precipitation_probability' +
+      '&hourly=temperature_2m,apparent_temperature,relativehumidity_2m,weathercode,precipitation_probability' +
       '&daily=temperature_2m_max,temperature_2m_min,weathercode' +
       '&current_weather=true&timezone=Asia%2FYerevan&forecast_days=3';
 
@@ -1169,9 +1232,10 @@ async function loadWeather() {
     renderWeather();
   } catch (e) {
     document.getElementById('weather-scroll').innerHTML =
-      '<div class="text-xs text-[#555] py-4 px-2">Погода недоступна</div>';
+      '<div class="hero-forecast-item" style="min-width:100px;"><span style="color:var(--text-dim);font-size:11px;">Погода недоступна</span></div>';
   }
 }
+
 
 function setWeatherDay(day) {
   currentWeatherDay = day;
@@ -1194,10 +1258,48 @@ function renderWeather() {
   targetDate.setDate(today.getDate() + currentWeatherDay);
   const targetDateStr = targetDate.toISOString().slice(0, 10);
 
-  // Build hourly rows for target day
+  // Update current weather in hero (only for today)
+  if (currentWeatherDay === 0 && weatherData.current_weather) {
+    const cw = weatherData.current_weather;
+    const cWmo = wmo(cw.weathercode);
+    const nowH = new Date().getHours();
+    const hIdx = weatherData.hourly.time.findIndex(t => t.startsWith(todayStr + 'T' + String(nowH).padStart(2,'0')));
+    const feelsLike = hIdx >= 0 && weatherData.hourly.apparent_temperature
+      ? Math.round(weatherData.hourly.apparent_temperature[hIdx]) : null;
+    const humidity = hIdx >= 0 && weatherData.hourly.relativehumidity_2m
+      ? weatherData.hourly.relativehumidity_2m[hIdx] : null;
+
+    const heroEmoji = document.getElementById('hero-weather-emoji');
+    const heroTemp = document.getElementById('hero-temp');
+    const heroDesc = document.getElementById('hero-weather-desc');
+    const heroFeels = document.getElementById('hero-feels');
+    const heroWind = document.getElementById('hero-wind');
+    const heroHumid = document.getElementById('hero-humid');
+
+    if (heroEmoji) heroEmoji.textContent = cWmo.e;
+    if (heroTemp) heroTemp.textContent = (cw.temperature > 0 ? '+' : '') + Math.round(cw.temperature);
+    if (heroDesc) heroDesc.textContent = cWmo.d;
+    if (heroFeels && feelsLike !== null) heroFeels.textContent = `Ощущается ${feelsLike > 0 ? '+' : ''}${feelsLike}°`;
+    if (heroWind) heroWind.textContent = `💨 ${Math.round(cw.windspeed / 3.6)} м/с`;
+    if (heroHumid && humidity !== null) heroHumid.textContent = `💧 ${humidity}%`;
+  } else {
+    // Other days — show daily min/max in hero area
+    const maxT = Math.round(d.temperature_2m_max[currentWeatherDay]);
+    const minT = Math.round(d.temperature_2m_min[currentWeatherDay]);
+    const dayCode = d.weathercode[currentWeatherDay];
+    const dayW = wmo(dayCode);
+    const heroEmoji = document.getElementById('hero-weather-emoji');
+    const heroTemp = document.getElementById('hero-temp');
+    const heroDesc = document.getElementById('hero-weather-desc');
+    if (heroEmoji) heroEmoji.textContent = dayW.e;
+    if (heroTemp) heroTemp.textContent = (maxT > 0 ? '+' : '') + maxT;
+    if (heroDesc) heroDesc.textContent = dayW.d + ` · мин ${minT > 0 ? '+' : ''}${minT}°`;
+  }
+
+  // Build hourly forecast strip
   const scrollEl = document.getElementById('weather-scroll');
   const items = [];
-  const currentHour = now.getHours();
+  const currentHour = new Date().getHours();
 
   h.time.forEach((t, idx) => {
     if (!t.startsWith(targetDateStr)) return;
@@ -1209,26 +1311,24 @@ function renderWeather() {
     const isCurrent = currentWeatherDay === 0 && hour === currentHour;
 
     items.push(`
-      <div class="weather-hour ${isCurrent ? 'current' : ''}">
-        <span class="text-[#888] font-semibold">${String(hour).padStart(2, '0')}:00</span>
-        <span class="text-lg leading-none">${w.e}</span>
-        <span class="font-bold text-white">${temp > 0 ? '+' : ''}${temp}°</span>
-        ${precip > 10 ? `<span class="text-xs text-blue-400">💧${precip}%</span>` : '<span class="text-xs text-transparent">-</span>'}
+      <div class="hero-forecast-item ${isCurrent ? 'now' : ''}">
+        <span style="font-size:11px;">${String(hour).padStart(2, '0')}:00</span>
+        <span class="fc-emoji">${w.e}</span>
+        <span class="fc-temp">${temp > 0 ? '+' : ''}${temp}°</span>
+        ${precip > 10 ? `<span style="font-size:10px; color:#60a5fa;">💧${precip}%</span>` : '<span style="font-size:10px; opacity:0;">-</span>'}
       </div>
     `);
   });
 
-  scrollEl.innerHTML = items.length ? items.join('') : '<div class="text-xs text-[#666] py-4 px-2">Нет данных</div>';
+  scrollEl.innerHTML = items.length ? items.join('') : '<div class="hero-forecast-item" style="min-width:100px;"><span style="color:var(--text-dim); font-size:11px;">Нет данных</span></div>';
 
-  // Daily summary
-  const maxT = Math.round(d.temperature_2m_max[currentWeatherDay]);
-  const minT = Math.round(d.temperature_2m_min[currentWeatherDay]);
-  const dayCode = d.weathercode[currentWeatherDay];
-  const dayW = wmo(dayCode);
-  document.getElementById('weather-summary-emoji').textContent = dayW.e;
-  document.getElementById('weather-summary-text').textContent =
-    `${dayW.d} · ${minT > 0 ? '+' : ''}${minT}° — ${maxT > 0 ? '+' : ''}${maxT}°`;
+  // Auto-scroll to current hour
+  if (currentWeatherDay === 0) {
+    const nowItem = scrollEl.querySelector('.now');
+    if (nowItem) setTimeout(() => nowItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }), 100);
+  }
 }
+
 
 // ════════════════════════════════════════════
 // CLOCK
@@ -1237,6 +1337,7 @@ function updateClock() {
   const now = new Date();
   const h = String(now.getHours()).padStart(2, '0');
   const m = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
   const timeStr = `${h}:${m}`;
 
   const days = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
@@ -1251,9 +1352,41 @@ function updateClock() {
     const el = document.getElementById(id);
     if (el) el.textContent = dateStr;
   });
+  // Update seconds in hero widget
+  const secEl = document.getElementById('big-time-sec');
+  if (secEl) secEl.textContent = ':' + s;
 }
 setInterval(updateClock, 1000);
 updateClock();
+
+// ════════════════════════════════════════════
+// THEME TOGGLE
+// ════════════════════════════════════════════
+function initTheme() {
+  const saved = localStorage.getItem('ntivi_theme') || 'dark';
+  applyTheme(saved);
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : '');
+  localStorage.setItem('ntivi_theme', theme);
+  const iconDark = document.getElementById('theme-icon-dark');
+  const iconLight = document.getElementById('theme-icon-light');
+  if (iconDark) iconDark.classList.toggle('hidden', theme === 'light');
+  if (iconLight) iconLight.classList.toggle('hidden', theme !== 'light');
+  // Update header color for meta theme-color
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = theme === 'light' ? '#f0f2f5' : '#0a0a0a';
+}
+
+function toggleTheme() {
+  const current = localStorage.getItem('ntivi_theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  showToast(next === 'light' ? '☀️ Светлая тема включена' : '🌙 Тёмная тема включена');
+}
+
+
 
 // ════════════════════════════════════════════
 // GPS
@@ -1648,7 +1781,9 @@ document.addEventListener('dblclick', e => e.preventDefault());
 // ════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════
+initTheme();
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   lucide.createIcons();
   initActivation();
   // If already activated, also init dialer tab display
