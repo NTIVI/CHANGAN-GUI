@@ -4,60 +4,61 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Changan UI v2 — Preview</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════
    CSS VARIABLES — DARK / LIGHT THEMES
 ══════════════════════════════════════════ */
 :root {
-  --bg:           #0a0a12;
-  --bg2:          #11111c;
+  --bg:           #0a0a0f;
+  --bg2:          #12121c;
   --bg3:          #181826;
-  --bg4:          #1f1f30;
-  --glass:        rgba(255,255,255,0.04);
-  --glass-h:      rgba(255,255,255,0.09);
+  --bg4:          #202032;
+  --glass:        rgba(255,255,255,0.05);
+  --glass-h:      rgba(255,255,255,0.1);
   --border:       rgba(255,255,255,0.08);
-  --border-h:     rgba(255,255,255,0.16);
-  --text:         #eeeef6;
-  --text-dim:     #7777a8;
-  --text-muted:   #444466;
-  --accent:       #ff6b35;
-  --accent2:      #ff9f43;
-  --accent-glow:  rgba(255,107,53,0.25);
-  --blue:         #4cc9f0;
-  --green:        #4ade80;
-  --red:          #f87171;
-  --header-h:     60px;
-  --bar-h:        48px;
-  --nav-h:        68px;
-  --radius:       16px;
+  --border-h:     rgba(255,255,255,0.18);
+  --text:         #f0f0f8;
+  --text-dim:     #8e8ea8;
+  --text-muted:   #555570;
+  --accent:       #ff6b00;
+  --accent2:      #ff9436;
+  --accent-glow:  rgba(255,107,0,0.22);
+  --blue:         #38bdf8;
+  --green:        #22c55e;
+  --red:          #ef4444;
+  --radius:       20px;
 }
 [data-theme="light"] {
-  --bg:           #eceff8;
-  --bg2:          #e2e6f4;
-  --bg3:          #d6dcee;
-  --bg4:          #cad0e4;
+  --bg:           #f4f6fa;
+  --bg2:          #ffffff;
+  --bg3:          #eaedf5;
+  --bg4:          #dfe3ee;
   --glass:        rgba(0,0,0,0.04);
   --glass-h:      rgba(0,0,0,0.08);
-  --border:       rgba(0,0,0,0.09);
-  --border-h:     rgba(0,0,0,0.18);
-  --text:         #18182c;
-  --text-dim:     #555578;
-  --text-muted:   #9999bb;
-  --accent:       #ff6b35;
-  --accent2:      #ff9f43;
-  --accent-glow:  rgba(255,107,53,0.15);
+  --border:       rgba(0,0,0,0.08);
+  --border-h:     rgba(0,0,0,0.16);
+  --text:         #0f172a;
+  --text-dim:     #64748b;
+  --text-muted:   #94a3b8;
+  --accent:       #ff6b00;
+  --accent2:      #ff9436;
+  --accent-glow:  rgba(255,107,0,0.12);
   --blue:         #0284c7;
 }
 
 /* ══════════════════════════════════════════
    RESET & BASE
 ══════════════════════════════════════════ */
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;}
 html,body{width:100%;height:100vh;overflow:hidden;}
-body{background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
-  transition:background .45s,color .45s;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  transition:background .45s cubic-bezier(0.4,0,0.2,1),color .45s cubic-bezier(0.4,0,0.2,1);
+}
 .hidden{display:none!important;}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
 
@@ -66,89 +67,93 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 ══════════════════════════════════════════ */
 #overlay{
   position:fixed;inset:0;z-index:90;
-  background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
-  display:none;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(6px);
+  display:none;opacity:0;transition:opacity .3s ease;
 }
-#overlay.show{display:block;}
+#overlay.show{display:block;opacity:1;}
 
 /* ══════════════════════════════════════════
    MAIN APP LAYOUT (Wireframe match)
 ══════════════════════════════════════════ */
 #app{
-  display:none;
   width:100vw;height:100vh;
-  position:relative;
-  overflow:hidden;
+  position:relative;overflow:hidden;
+  display:block;
 }
-#app.visible{display:block;}
 
-/* ── Fullscreen Background 3D Canvas ── */
-.scene-wrap{
+/* ── Fullscreen Center Car Display (Photo with Shadows) ── */
+.car-stage{
   position:absolute;inset:0;z-index:1;
-  width:100%;height:100%;
-}
-#car-canvas{
-  display:block;width:100%;height:100%;
-}
-.car-glow{
-  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-  width:70%;height:45%;
-  background:radial-gradient(ellipse at center bottom, var(--accent-glow) 0%, transparent 70%);
+  display:flex;align-items:center;justify-content:center;
   pointer-events:none;
 }
+.car-glow{
+  position:absolute;width:65vw;max-width:700px;height:240px;
+  border-radius:50%;
+  background:radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 70%);
+  bottom:20%;left:50%;transform:translateX(-50%);
+  pointer-events:none;transition:all .5s ease;
+}
+.car-photo-wrap{
+  position:relative;
+  width:min(720px, 78vw);
+  max-height:60vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:auto;
+}
+.car-img{
+  width:100%;height:auto;max-height:48vh;
+  object-fit:contain;
+  filter:drop-shadow(0 20px 35px rgba(0,0,0,0.65));
+  transition:transform .4s ease, filter .4s ease;
+}
+.car-img:hover{
+  transform:scale(1.02);
+}
 #car-label{
-  position:absolute;bottom:90px;left:50%;transform:translateX(-50%);
-  background:var(--glass);backdrop-filter:blur(12px);
-  border:1px solid var(--border);border-radius:99px;
-  padding:6px 22px;font-size:14px;font-weight:700;color:var(--text);
-  white-space:nowrap;pointer-events:none;
-  box-shadow:0 8px 30px rgba(0,0,0,0.3);
+  position:absolute;bottom:-38px;left:50%;transform:translateX(-50%);
+  background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:99px;padding:6px 20px;
+  font-size:13px;font-weight:700;color:var(--text);
+  white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.3);
+  backdrop-filter:blur(10px);
 }
 
 /* ── TOP-LEFT WIDGET: Clock & Phone ── */
 .top-left-card{
   position:absolute;top:20px;left:24px;z-index:10;
-  background:var(--bg2);
-  border:1.5px solid var(--border);
-  border-radius:20px;
-  padding:14px 18px;
-  min-width:180px;
-  box-shadow:0 12px 36px rgba(0,0,0,0.35);
+  background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:var(--radius);padding:14px 18px;
+  min-width:180px;box-shadow:0 12px 36px rgba(0,0,0,0.3);
   backdrop-filter:blur(16px);
   display:flex;flex-direction:column;gap:8px;
 }
 .tl-time{
-  font-size:32px;font-weight:800;letter-spacing:-1.5px;
-  line-height:1;font-variant-numeric:tabular-nums;
-  color:var(--text);
+  font-size:34px;font-weight:900;letter-spacing:-1.5px;
+  line-height:1;font-variant-numeric:tabular-nums;color:var(--text);
 }
 .tl-date{font-size:12px;color:var(--text-dim);font-weight:500;}
-.tl-actions{
-  display:flex;align-items:center;gap:8px;margin-top:4px;
-}
+.tl-actions{display:flex;align-items:center;gap:8px;margin-top:2px;}
 .mini-btn{
-  width:36px;height:36px;border-radius:10px;
+  width:38px;height:38px;border-radius:12px;
   background:var(--glass);border:1px solid var(--border);
   display:flex;align-items:center;justify-content:center;
-  color:var(--text);transition:background .2s,border-color .2s,transform .1s;
+  color:var(--text);transition:all .2s;
 }
+.mini-btn:hover{background:var(--glass-h);border-color:var(--border-h);}
 .mini-btn:active{transform:scale(.92);}
 .mini-btn svg{width:18px;height:18px;stroke:currentColor;}
 
 /* ── TOP-RIGHT WIDGET: User Profile & Theme ── */
 .top-right-card{
   position:absolute;top:20px;right:24px;z-index:10;
-  background:var(--bg2);
-  border:1.5px solid var(--border);
-  border-radius:20px;
-  padding:10px 16px;
-  box-shadow:0 12px 36px rgba(0,0,0,0.35);
+  background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:var(--radius);padding:10px 16px;
+  box-shadow:0 12px 36px rgba(0,0,0,0.3);
   backdrop-filter:blur(16px);
   display:flex;align-items:center;gap:12px;
 }
-.u-badge-inner{
-  display:flex;align-items:center;gap:10px;
-}
+.u-badge-inner{display:flex;align-items:center;gap:10px;}
 .avatar{
   width:38px;height:38px;border-radius:12px;
   background:linear-gradient(135deg,var(--accent),var(--accent2));
@@ -159,32 +164,29 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .u-name{font-size:14px;font-weight:700;line-height:1.2;}
 .u-car{font-size:11px;color:var(--text-dim);margin-top:2px;}
 
-/* ── BOTTOM-LEFT WIDGET: Weather ── */
+/* ── BOTTOM-LEFT WIDGET: Weather (Click opens Forecast Modal) ── */
 .bottom-left-card{
   position:absolute;bottom:20px;left:24px;z-index:10;
-  background:var(--bg2);
-  border:1.5px solid var(--border);
-  border-radius:20px;
-  padding:16px 20px;
-  min-width:260px;
-  box-shadow:0 12px 36px rgba(0,0,0,0.35);
+  background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:var(--radius);padding:14px 18px;
+  min-width:260px;box-shadow:0 12px 36px rgba(0,0,0,0.3);
   backdrop-filter:blur(16px);
   display:flex;flex-direction:column;gap:10px;
+  cursor:pointer;transition:transform .2s, border-color .2s;
 }
-.wx-head{
-  display:flex;align-items:center;justify-content:space-between;
-}
+.bottom-left-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.bottom-left-card:active{transform:scale(.98);}
+.wx-head{display:flex;align-items:center;justify-content:space-between;}
 .wx-city-badge{
   font-size:12px;font-weight:700;color:var(--text-dim);
   display:flex;align-items:center;gap:5px;
 }
 .wx-city-badge svg{width:13px;height:13px;}
-.wx-main-row{
-  display:flex;align-items:center;gap:12px;
-}
+.wx-hint{font-size:10px;color:var(--accent);font-weight:600;}
+.wx-main-row{display:flex;align-items:center;gap:12px;}
 .wx-emoji{font-size:36px;line-height:1;}
 .wx-temp-col{display:flex;flex-direction:column;}
-.wx-temp{font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;}
+.wx-temp{font-size:26px;font-weight:900;letter-spacing:-1px;line-height:1;}
 .wx-desc{font-size:12px;color:var(--text-dim);margin-top:2px;}
 .wx-metrics{
   display:flex;gap:12px;padding-top:8px;border-top:1px solid var(--border);
@@ -194,30 +196,22 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 /* ── BOTTOM-RIGHT WIDGET: Navigation Bar & Controls ── */
 .bottom-right-bar{
   position:absolute;bottom:20px;right:24px;z-index:10;
-  background:var(--bg2);
-  border:1.5px solid var(--border);
-  border-radius:22px;
-  padding:8px 12px;
-  box-shadow:0 12px 36px rgba(0,0,0,0.35);
+  background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:24px;padding:8px 12px;
+  box-shadow:0 12px 36px rgba(0,0,0,0.3);
   backdrop-filter:blur(16px);
   display:flex;align-items:center;gap:10px;
 }
-.bar-group{
-  display:flex;align-items:center;gap:8px;
-}
-.bar-divider{
-  width:1.5px;height:34px;background:var(--border);margin:0 2px;
-}
+.bar-group{display:flex;align-items:center;gap:8px;}
+.bar-divider{width:1.5px;height:34px;background:var(--border);margin:0 2px;}
 .nb{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   width:52px;height:52px;border-radius:14px;
   background:var(--glass);border:1px solid var(--border);
-  color:var(--text-dim);
-  transition:all .2s;
-  position:relative;
+  color:var(--text-dim);transition:all .2s;position:relative;
 }
-.nb:active{transform:scale(.9);}
 .nb:hover{background:var(--glass-h);color:var(--text);}
+.nb:active{transform:scale(.9);}
 .nb.on{color:var(--accent);border-color:var(--accent);}
 .nb svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
 .nb span{font-size:9px;font-weight:700;}
@@ -242,10 +236,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 }
 .ctl-btn:active{transform:scale(.9);}
 .ctl-btn:hover{color:var(--text);background:var(--glass-h);}
-.ctl-btn.active{color:var(--blue);border-color:var(--blue);background:rgba(76,201,240,.15);}
+.ctl-btn.active{color:var(--blue);border-color:var(--blue);background:rgba(56,189,248,.15);}
 .ctl-btn svg{width:17px;height:17px;stroke:currentColor;}
 
-/* Responsive adjustments for mobile/narrow screens */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .top-left-card { top: 12px; left: 12px; min-width: 140px; padding: 10px 14px; }
   .tl-time { font-size: 24px; }
@@ -255,7 +249,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   .nb { width: 44px; height: 44px; }
   .nb svg { width: 18px; height: 18px; }
   .nb span { display: none; }
-  #car-label { bottom: 80px; }
+  #car-label { bottom: -30px; font-size: 11px; padding: 4px 14px; }
 }
 
 /* ══════════════════════════════════════════
@@ -271,27 +265,36 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:18px;
 }
-.p-title{font-size:18px;font-weight:800;}
+.p-title{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;}
 .p-close{
-  width:32px;height:32px;border-radius:9px;
+  width:32px;height:32px;border-radius:10px;
   background:var(--glass);border:1px solid var(--border);
   display:flex;align-items:center;justify-content:center;
-  font-size:16px;cursor:pointer;
-  transition:background .2s;
+  font-size:16px;cursor:pointer;transition:background .2s;
 }
 .p-close:hover{background:var(--glass-h);}
 
+/* Modal Overlay & Box */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(8px);z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+}
+.modal-box{
+  background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:24px;max-height:88vh;overflow-y:auto;
+  box-shadow:0 24px 60px rgba(0,0,0,0.5);
+}
+
 /* Phone panel — slides from LEFT */
 #phone-panel{
-  top:0;left:0;bottom:0;width:min(300px,85vw);
-  border-right:1px solid var(--border);
-  border-radius:0 22px 22px 0;
-  padding:20px;
-  transform:translateX(-100%);
+  top:0;left:0;bottom:0;width:min(320px,85vw);
+  border-right:1.5px solid var(--border);
+  border-radius:0 24px 24px 0;
+  padding:20px;transform:translateX(-100%);
   display:flex;flex-direction:column;gap:14px;
 }
 #phone-panel.open{transform:translateX(0);}
-
 .dial-display{
   background:var(--bg3);border:1px solid var(--border);
   border-radius:14px;padding:14px 16px;
@@ -305,16 +308,16 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .dk{
   background:var(--bg3);border:1px solid var(--border);
   border-radius:12px;padding:13px;
-  text-align:center;font-size:18px;font-weight:600;
-  transition:background .15s,transform .1s;
+  text-align:center;font-size:18px;font-weight:700;
+  transition:all .15s;cursor:pointer;
 }
 .dk:active{background:var(--bg4);transform:scale(.93);}
 .dk.del{font-size:20px;}
 .dk.call-btn{
   background:var(--green);color:#fff;border-color:transparent;
   display:flex;align-items:center;justify-content:center;gap:8px;
-  font-size:15px;
-  box-shadow:0 4px 16px rgba(74,222,128,.25);
+  font-size:15px;font-weight:800;
+  box-shadow:0 4px 16px rgba(34,197,94,.25);
 }
 .dk.call-btn:active{opacity:.85;}
 .dk.call-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.5;}
@@ -322,47 +325,44 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 /* App bottom sheet — slides from BOTTOM */
 #app-sheet{
   bottom:0;left:0;right:0;
-  border-radius:24px 24px 0 0;
-  border:1px solid var(--border);border-bottom:none;
-  padding:10px 18px 24px;
+  border-radius:28px 28px 0 0;
+  border:1.5px solid var(--border);border-bottom:none;
+  padding:12px 20px 28px;
   transform:translateY(100%);
   transition:transform .4s cubic-bezier(.34,1.2,.64,1);
-  max-height:72vh;
+  max-height:76vh;
 }
 #app-sheet.open{transform:translateY(0);}
 .sheet-handle{
-  width:40px;height:4px;background:var(--border);
-  border-radius:2px;margin:0 auto 14px;
+  width:44px;height:4px;background:var(--border);
+  border-radius:2px;margin:0 auto 16px;
 }
-.sheet-title{font-size:16px;font-weight:700;margin-bottom:14px;}
-.apps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.sheet-title{font-size:17px;font-weight:800;margin-bottom:14px;}
+.apps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 .app-card{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  padding:10px 6px;border-radius:14px;cursor:pointer;
-  transition:background .18s,transform .1s;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:12px 6px;border-radius:16px;cursor:pointer;
+  transition:all .18s;border:1px solid transparent;
 }
-.app-card:active{background:var(--glass-h);transform:scale(.92);}
+.app-card:hover{background:var(--glass-h);border-color:var(--border);}
+.app-card:active{transform:scale(.92);}
 .app-icon-wrap{
-  width:52px;height:52px;border-radius:15px;
+  width:54px;height:54px;border-radius:16px;
   display:flex;align-items:center;justify-content:center;
-  font-size:26px;
+  font-size:26px;box-shadow:0 4px 14px rgba(0,0,0,0.15);
 }
-.app-label{font-size:11px;color:var(--text-dim);text-align:center;line-height:1.3;}
+.app-label{font-size:11px;font-weight:600;color:var(--text-dim);text-align:center;line-height:1.2;}
 
 /* Notification panel — slides from RIGHT */
 #notif-panel{
-  top:0;right:0;bottom:0;width:min(360px,92vw);
-  border-left:1px solid var(--border);
-  border-radius:22px 0 0 22px;
-  padding:20px;
-  transform:translateX(100%);
-  display:flex;flex-direction:column;gap:12px;
+  top:0;right:0;bottom:0;width:min(380px,92vw);
+  border-left:1.5px solid var(--border);
+  border-radius:24px 0 0 24px;
+  padding:20px;transform:translateX(100%);
+  display:flex;flex-direction:column;gap:14px;
 }
 #notif-panel.open{transform:translateX(0);}
-.notif-empty{
-  text-align:center;color:var(--text-dim);
-  font-size:14px;padding:50px 0;
-}
+.notif-empty{text-align:center;color:var(--text-dim);font-size:14px;padding:60px 0;}
 .notif-card{
   background:var(--bg3);border:1px solid var(--border);
   border-radius:14px;padding:12px 14px;
@@ -373,11 +373,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 
 /* Settings panel — slides from RIGHT */
 #settings-panel{
-  top:0;right:0;bottom:0;width:min(360px,92vw);
-  border-left:1px solid var(--border);
-  border-radius:22px 0 0 22px;
-  padding:20px;
-  transform:translateX(100%);
+  top:0;right:0;bottom:0;width:min(380px,92vw);
+  border-left:1.5px solid var(--border);
+  border-radius:24px 0 0 24px;
+  padding:20px;transform:translateX(100%);
   display:flex;flex-direction:column;gap:14px;
 }
 #settings-panel.open{transform:translateX(0);}
@@ -390,17 +389,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   font-size:14px;
 }
 .s-row-sub{font-size:12px;color:var(--text-dim);margin-top:2px;}
-
-/* Toggle switch */
 .tog{
   width:46px;height:26px;background:var(--bg4);border-radius:13px;
   position:relative;cursor:pointer;transition:background .22s;flex-shrink:0;
 }
 .tog.on{background:var(--accent);}
 .tog::after{
-  content:'';position:absolute;
-  width:22px;height:22px;background:#fff;border-radius:11px;
-  top:2px;left:2px;transition:transform .22s;
+  content:'';position:absolute;width:22px;height:22px;background:#fff;
+  border-radius:11px;top:2px;left:2px;transition:transform .22s;
   box-shadow:0 2px 6px rgba(0,0,0,.2);
 }
 .tog.on::after{transform:translateX(20px);}
@@ -409,8 +405,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .qa-item{
   background:var(--bg3);border:1px solid var(--border);
   border-radius:12px;padding:10px 14px;
-  display:flex;align-items:center;gap:10px;
-  font-size:14px;
+  display:flex;align-items:center;gap:10px;font-size:14px;
 }
 .qa-icon{font-size:20px;}
 .qa-name{flex:1;}
@@ -418,21 +413,72 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   width:22px;height:22px;border-radius:6px;
   border:2px solid var(--border);
   display:flex;align-items:center;justify-content:center;
-  transition:background .15s,border-color .15s;cursor:pointer;
+  transition:all .15s;cursor:pointer;
 }
 .qa-check.on{background:var(--accent);border-color:var(--accent);}
 .qa-check.on::after{content:'✓';color:#fff;font-size:13px;font-weight:800;}
 
-/* Theme transition */
-.theme-t,.theme-t *{
-  transition:background .45s ease,color .45s ease,
-    border-color .45s ease,box-shadow .45s ease!important;
+/* Weather Forecast Modal Styles */
+.weather-day-btn{
+  padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .15s;border:1px solid transparent;background:transparent;color:var(--text-dim);
+}
+.weather-day-btn.active{background:rgba(255,107,0,0.15);border-color:var(--accent);color:var(--accent);}
+.weather-day-btn:hover:not(.active){color:var(--text);background:var(--bg4);}
+.hero-forecast-row{display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:10px 4px;scrollbar-width:none;}
+.hero-forecast-row::-webkit-scrollbar{display:none;}
+.hero-forecast-item{
+  flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:8px 12px;border-radius:12px;min-width:64px;font-size:11px;font-weight:600;
+  color:var(--text-dim);background:var(--bg4);border:1px solid transparent;
+}
+.hero-forecast-item.now{background:rgba(255,107,0,0.12);border-color:var(--accent);color:var(--accent);}
+.hero-forecast-item .fc-temp{font-size:14px;font-weight:800;color:var(--text);}
+.hero-forecast-item.now .fc-temp{color:var(--accent);}
+.hero-weather-tag{
+  font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;
+  background:rgba(255,107,0,0.1);color:var(--accent);border:1px solid rgba(255,107,0,0.2);
 }
 
-/* ══════════════════════════════════════════
-   SCROLLBAR
-══════════════════════════════════════════ */
-::-webkit-scrollbar{width:4px;}
+/* Radio Modal Items */
+.radio-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:14px;
+  cursor:pointer;transition:all .15s;
+}
+.radio-item:hover{border-color:var(--accent);background:var(--bg4);}
+.radio-item:active{transform:scale(.98);}
+.radio-icon{
+  width:40px;height:40px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:#fff;
+}
+
+/* Notification Toast */
+#notif-toast{
+  position:fixed;top:20px;left:50%;
+  transform:translateX(-50%) translateY(-120px);
+  background:var(--bg2);border:1.5px solid var(--accent);
+  border-radius:18px;padding:12px 18px;
+  display:flex;align-items:center;gap:12px;
+  max-width:340px;width:90%;z-index:9999;
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1);
+}
+#notif-toast.show{transform:translateX(-50%) translateY(0);}
+.toast-icon{font-size:22px;}
+.toast-text .t-title{font-size:13px;font-weight:700;}
+.toast-text .t-body{font-size:12px;color:var(--text-dim);margin-top:2px;}
+
+/* Global Theme Transition */
+.theme-t, .theme-t *{
+  transition:background .45s cubic-bezier(0.4,0,0.2,1),
+             color .45s cubic-bezier(0.4,0,0.2,1),
+             border-color .45s cubic-bezier(0.4,0,0.2,1),
+             box-shadow .45s cubic-bezier(0.4,0,0.2,1)!important;
+}
+
+::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 </style>
@@ -442,22 +488,24 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 <!-- ══════ OVERLAY ══════ -->
 <div id="overlay" onclick="closeAll()"></div>
 
+<!-- ══════ NOTIFICATION TOAST ══════ -->
+<div id="notif-toast">
+  <div class="toast-icon">🔔</div>
+  <div class="toast-text">
+    <div class="t-title" id="t-title">Уведомление</div>
+    <div class="t-body"  id="t-body"></div>
+  </div>
+</div>
+
 <!-- ══════ MAIN APP ══════ -->
 <div id="app">
 
-  <!-- ── FULLSCREEN 3D CAR CANVAS (Center) ── -->
-  <div class="scene-wrap">
-    <canvas id="car-canvas"></canvas>
-    <div class="car-glow"></div>
-    <div id="car-label">Changan</div>
-    
-    <!-- In-scene notification toast -->
-    <div id="notif-toast">
-      <div class="toast-icon">🔔</div>
-      <div class="toast-text">
-        <div class="t-title" id="t-title">Уведомление</div>
-        <div class="t-body"  id="t-body"></div>
-      </div>
+  <!-- ── CENTER CAR STAGE (Realistic Car Photo with Theme Adaptation) ── -->
+  <div class="car-stage">
+    <div class="car-glow" id="car-glow"></div>
+    <div class="car-photo-wrap">
+      <img id="car-main-img" class="car-img" src="" alt="Changan Car" />
+      <div id="car-label">Changan UNI-K</div>
     </div>
   </div>
 
@@ -468,6 +516,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
     <div class="tl-actions">
       <button class="mini-btn" onclick="openPanel('phone-panel')" title="Позвонить">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .17h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
+      </button>
+      <button class="mini-btn" onclick="openRadioModal()" title="Радио">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
       </button>
     </div>
   </div>
@@ -487,13 +538,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
     </button>
   </div>
 
-  <!-- ── BOTTOM-LEFT WIDGET (Weather) ── -->
-  <div class="bottom-left-card">
+  <!-- ── BOTTOM-LEFT WIDGET (Weather preview — click opens modal) ── -->
+  <div class="bottom-left-card" onclick="openWeatherModal()" title="Нажмите для подробного прогноза">
     <div class="wx-head">
       <div class="wx-city-badge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
         Ереван
       </div>
+      <div class="wx-hint">Подробнее →</div>
     </div>
     <div class="wx-main-row">
       <div class="wx-emoji" id="wx-emoji">🌤️</div>
@@ -511,15 +563,15 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   <!-- ── BOTTOM-RIGHT WIDGET (Navigation Dock & Quick Controls) ── -->
   <div class="bottom-right-bar">
     <!-- Main App Icons -->
-    <div class="bar-group">
-      <!-- Apps Sheet -->
-      <button class="nb" onclick="openSheet()" title="Приложения">
+    <div class="bar-group" id="main-dock-apps">
+      <!-- Apps Sheet Button -->
+      <button class="nb" onclick="openSheet()" title="Все приложения">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         <span>Прил.</span>
       </button>
 
       <!-- Maps -->
-      <button class="nb" onclick="window.open('https://yandex.ru/maps/','_blank')" title="Карты">
+      <button class="nb" onclick="window.open('https://yandex.ru/maps/','_blank')" title="Яндекс.Карты">
         <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
         <span>Карты</span>
       </button>
@@ -547,7 +599,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
       </button>
       <!-- Refresh -->
-      <button class="ctl-btn" onclick="location.reload()" title="Обновить">
+      <button class="ctl-btn" onclick="location.reload()" title="Обновить страницу">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
       </button>
       <!-- Settings -->
@@ -586,10 +638,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   </div>
 </div>
 
-<!-- ══════ APP SHEET ══════ -->
+<!-- ══════ APP SHEET (All Apps) ══════ -->
 <div id="app-sheet" class="panel">
   <div class="sheet-handle"></div>
-  <div class="sheet-title">Приложения</div>
+  <div class="sheet-title">Приложения и Сервисы</div>
   <div class="apps-grid" id="apps-grid"></div>
 </div>
 
@@ -621,16 +673,115 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   </div>
 
   <div class="s-section">
-    <div class="s-label">Быстрый доступ — нижнее меню</div>
-    <div id="qa-list"></div>
+    <div class="s-label">Выбор машины для теста</div>
+    <div class="s-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+      <div style="font-size:12px;color:var(--text-dim);">Выберите модель автомобиля:</div>
+      <select id="car-select" onchange="switchCarModel(this.value)" style="width:100%;padding:10px;border-radius:10px;background:var(--bg4);border:1px solid var(--border);color:var(--text);font-family:inherit;outline:none;">
+        <option value="UNI-K">Changan UNI-K</option>
+        <option value="UNI-V">Changan UNI-V</option>
+        <option value="UNI-T">Changan UNI-T</option>
+        <option value="CS55 PLUS">Changan CS55 PLUS</option>
+        <option value="CS35 PLUS">Changan CS35 PLUS</option>
+        <option value="CS75 PLUS">Changan CS75 PLUS</option>
+        <option value="CS85 COUPE">Changan CS85 COUPE</option>
+      </select>
+    </div>
   </div>
 
   <div class="s-section">
-    <div class="s-label">О версии</div>
-    <div class="s-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
-      <div style="font-weight:700;">Changan UI v2</div>
-      <div class="s-row-sub">Тестовая страница нового дизайна</div>
-      <div class="s-row-sub" style="color:var(--accent);">Не показывается пользователям</div>
+    <div class="s-label">Быстрый доступ — нижнее меню</div>
+    <div id="qa-list"></div>
+  </div>
+</div>
+
+<!-- ══════ WEATHER FORECAST MODAL (From main site) ══════ -->
+<div id="weather-modal" class="modal-overlay hidden" onclick="event.target===this&&closeWeatherModal()">
+  <div class="modal-box p-5 sm:p-6" style="width:94vw; max-width:680px; padding:20px;" onclick="event.stopPropagation()">
+    <div class="p-head" style="margin-bottom:14px;">
+      <div class="flex items-center gap-2" style="display:flex;align-items:center;gap:10px;">
+        <div style="font-size:26px;">🌤️</div>
+        <div>
+          <div style="font-size:16px;font-weight:800;">Прогноз погоды — Ереван</div>
+          <div id="modal-weather-subtitle" style="font-size:11px;color:var(--text-dim);">Почасовой прогноз погоды</div>
+        </div>
+      </div>
+      <div class="p-close" onclick="closeWeatherModal()">✕</div>
+    </div>
+
+    <!-- Day switcher tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;background:var(--bg3);padding:4px;border-radius:12px;border:1px solid var(--border);">
+      <button id="modal-wday-0" onclick="setWeatherDay(0)" class="weather-day-btn active" style="flex:1;">Сегодня</button>
+      <button id="modal-wday-1" onclick="setWeatherDay(1)" class="weather-day-btn" style="flex:1;">Завтра</button>
+      <button id="modal-wday-2" onclick="setWeatherDay(2)" class="weather-day-btn" style="flex:1;">Послезавтра</button>
+    </div>
+
+    <!-- Selected day summary card -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div id="modal-day-emoji" style="font-size:36px;">🌤️</div>
+        <div>
+          <div id="modal-day-title" style="font-weight:800;font-size:14px;">Сегодня</div>
+          <div id="modal-day-desc" style="font-size:12px;color:var(--text-dim);margin-top:2px;">Загрузка...</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div id="modal-day-temp" style="font-size:24px;font-weight:900;color:var(--accent);">--°</div>
+        <div id="modal-day-range" style="font-size:11px;color:var(--text-dim);">мин --° · макс --°</div>
+      </div>
+    </div>
+
+    <!-- Hourly forecast row -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;">Почасовой прогноз</div>
+      <div id="weather-scroll" class="hero-forecast-row"></div>
+    </div>
+
+    <!-- Weather tags -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <span class="hero-weather-tag" id="modal-feels">Ощущается --°</span>
+      <span class="hero-weather-tag" id="modal-wind">💨 -- м/с</span>
+      <span class="hero-weather-tag" id="modal-humid">💧 --%</span>
+      <span class="hero-weather-tag" id="modal-precip">🌧️ Осадки: --%</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ RADIO MODAL (From main site) ══════ -->
+<div id="radio-modal" class="modal-overlay hidden" onclick="event.target===this&&closeRadioModal()">
+  <div class="modal-box p-6" style="width:90vw; max-width:480px; padding:20px;" onclick="event.stopPropagation()">
+    <div class="p-head">
+      <span class="p-title">📻 Онлайн-Радио</span>
+      <div class="p-close" onclick="closeRadioModal()">✕</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="radio-item" onclick="window.open('https://www.radiorecord.ru/','_blank')">
+        <div class="radio-icon" style="background:linear-gradient(135deg,#FF3D00,#900);">🎵</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">Radio Record</div>
+          <div style="font-size:11px;color:var(--text-dim);">Электронная музыка · Клуб</div>
+        </div>
+      </div>
+      <div class="radio-item" onclick="window.open('https://www.nashe.ru/','_blank')">
+        <div class="radio-icon" style="background:linear-gradient(135deg,#2196F3,#0D47A1);">🎸</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">Наше Радио</div>
+          <div style="font-size:11px;color:var(--text-dim);">Русский рок</div>
+        </div>
+      </div>
+      <div class="radio-item" onclick="window.open('https://www.europa-plus.ru/','_blank')">
+        <div class="radio-icon" style="background:linear-gradient(135deg,#9C27B0,#4A148C);">✨</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">Европа Плюс</div>
+          <div style="font-size:11px;color:var(--text-dim);">Топ хиты · Поп-музыка</div>
+        </div>
+      </div>
+      <div class="radio-item" onclick="window.open('https://www.avtoradio.ru/','_blank')">
+        <div class="radio-icon" style="background:linear-gradient(135deg,#FF6B00,#CC5500);">🚗</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;">Авторадио</div>
+          <div style="font-size:11px;color:var(--text-dim);">В дорогу · Хиты</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -640,6 +791,52 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 ══════════════════════════════════════════ -->
 <script>
 'use strict';
+// ────────────────────────────────────────────
+// CAR IMAGES DATABASE (High Quality Transparent Photos)
+// ────────────────────────────────────────────
+const CAR_PHOTOS = {
+  'UNI-K': {
+    name: 'Changan UNI-K',
+    dark: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=80',
+    light: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=80'
+  },
+  'UNI-V': {
+    name: 'Changan UNI-V',
+    dark: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1200&q=80',
+    light: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1200&q=80'
+  },
+  'UNI-T': {
+    name: 'Changan UNI-T',
+    dark: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80',
+    light: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80'
+  },
+  'CS55 PLUS': {
+    name: 'Changan CS55 PLUS',
+    dark: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80',
+    light: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=1200&q=80'
+  },
+  'CS35 PLUS': {
+    name: 'Changan CS35 PLUS',
+    dark: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
+    light: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80'
+  },
+  'CS75 PLUS': {
+    name: 'Changan CS75 PLUS',
+    dark: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1200&q=80',
+    light: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1200&q=80'
+  },
+  'CS85 COUPE': {
+    name: 'Changan CS85 COUPE',
+    dark: 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=1200&q=80',
+    light: 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=1200&q=80'
+  }
+};
+
+// SVG car illustration fallback if external photo fails
+const SVG_CAR_DARK = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" fill="none"><path d="M120 220 C140 130, 240 100, 360 90 L520 90 C620 95, 680 140, 710 200 L730 220 C745 235, 740 260, 710 260 L650 260 C640 210, 560 210, 550 260 L270 260 C260 210, 180 210, 170 260 L100 260 C75 260, 75 235, 120 220 Z" fill="%231a1a24" stroke="%23ff6b00" stroke-width="4"/><path d="M250 110 L350 100 L500 100 L580 150 L250 150 Z" fill="%232c3248"/><circle cx="220" cy="260" r="46" fill="%230c0c14" stroke="%23ff6b00" stroke-width="6"/><circle cx="600" cy="260" r="46" fill="%230c0c14" stroke="%23ff6b00" stroke-width="6"/><circle cx="220" cy="260" r="22" fill="%23333"/><circle cx="600" cy="260" r="22" fill="%23333"/></svg>`;
+
+const SVG_CAR_LIGHT = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" fill="none"><path d="M120 220 C140 130, 240 100, 360 90 L520 90 C620 95, 680 140, 710 200 L730 220 C745 235, 740 260, 710 260 L650 260 C640 210, 560 210, 550 260 L270 260 C260 210, 180 210, 170 260 L100 260 C75 260, 75 235, 120 220 Z" fill="%23ffffff" stroke="%23ff6b00" stroke-width="4"/><path d="M250 110 L350 100 L500 100 L580 150 L250 150 Z" fill="%2394a3b8"/><circle cx="220" cy="260" r="46" fill="%231e293b" stroke="%23ff6b00" stroke-width="6"/><circle cx="600" cy="260" r="46" fill="%231e293b" stroke="%23ff6b00" stroke-width="6"/><circle cx="220" cy="260" r="22" fill="%23cbd5e1"/><circle cx="600" cy="260" r="22" fill="%23cbd5e1"/></svg>`;
+
 // ────────────────────────────────────────────
 // STATE
 // ────────────────────────────────────────────
@@ -652,27 +849,31 @@ let V2 = {
   notifs:  [],
   unread:  0,
   lastId:  0,
-  scene: null, camera: null, renderer: null,
-  carGroup: null, clock: null, raf: null,
-  notifTimer: null, syncTimer: null,
+  currentWeatherDay: 0,
+  weatherData: null,
+  notifTimer: null,
+  syncTimer: null,
 };
 
 // ────────────────────────────────────────────
-// APPS REGISTRY
+// APPS REGISTRY (All apps from original site)
 // ────────────────────────────────────────────
 const APPS = [
-  { id:'maps',    name:'Я.Карты',  icon:'🗺️',  color:'#ff3d00', url:'https://yandex.ru/maps/' },
-  { id:'music',   name:'Я.Музыка', icon:'🎵',  color:'#ffcc00', url:'https://music.yandex.ru/' },
-  { id:'yandex',  name:'Яндекс',   icon:'🔍',  color:'#fc3f1d', url:'https://yandex.ru/' },
-  { id:'youtube', name:'YouTube',  icon:'▶️',  color:'#ff0000', url:'https://youtube.com/' },
-  { id:'tg',      name:'Telegram', icon:'✈️',  color:'#2ca5e0', url:'https://web.telegram.org/' },
-  { id:'radio',   name:'Радио',    icon:'📻',  color:'#8b5cf6', url:'https://radiorecord.ru/' },
-  { id:'weather', name:'Погода',   icon:'🌤️', color:'#38bdf8', url:'https://yandex.ru/pogoda/yerevan' },
-  { id:'browser', name:'Браузер',  icon:'🌐',  color:'#22c55e', url:'https://google.com/' },
+  { id:'maps',    name:'Яндекс.Карты', icon:'🗺️', color:'#fc3f1d', url:'https://yandex.ru/maps/' },
+  { id:'gmaps',   name:'Google Maps',  icon:'📍', color:'#4285f4', url:'https://www.google.com/maps/' },
+  { id:'2gis',    name:'2ГИС',         icon:'🏢', color:'#00a651', url:'https://2gis.ru/' },
+  { id:'music',   name:'Яндекс Музыка',icon:'🎵', color:'#ffcc00', url:'https://music.yandex.ru/' },
+  { id:'spotify', name:'Spotify',      icon:'🎧', color:'#1db954', url:'https://open.spotify.com/' },
+  { id:'youtube', name:'YouTube',      icon:'▶️', color:'#ff0000', url:'https://m.youtube.com/' },
+  { id:'tg',      name:'Telegram',     icon:'✈️', color:'#2ca5e0', url:'https://web.telegram.org/' },
+  { id:'insta',   name:'Instagram',    icon:'📸', color:'#e1306c', url:'https://www.instagram.com/' },
+  { id:'tiktok',  name:'TikTok',       icon:'📱', color:'#000000', url:'https://www.tiktok.com/' },
+  { id:'vk',      name:'ВКонтакте',    icon:'👥', color:'#0077ff', url:'https://vk.com/' },
+  { id:'radio',   name:'Радио',        icon:'📻', color:'#8b5cf6', action:'radio' },
+  { id:'weather', name:'Погода',       icon:'🌤️', color:'#38bdf8', action:'weather' },
 ];
 
-// Quick-access user choices (persisted)
-let quickApps = JSON.parse(localStorage.getItem('v2_qa') || '["maps","music","yandex"]');
+let quickApps = JSON.parse(localStorage.getItem('v2_qa') || '["maps","music","youtube","tg"]');
 
 // ────────────────────────────────────────────
 // BOOT
@@ -685,8 +886,6 @@ document.addEventListener('DOMContentLoaded', () => {
   buildQAList();
   loadWeather();
   setInterval(loadWeather, 10 * 60 * 1000);
-
-  // Open directly — no auth on v2 preview
   openDirectly();
 });
 
@@ -708,11 +907,7 @@ function applyTheme(t, animate = true) {
   const tog = document.getElementById('theme-tog');
   if (tog) tog.classList.toggle('on', isDark);
 
-  if (V2.renderer && V2.scene) {
-    const col = isDark ? 0x0a0a12 : 0xeceff8;
-    V2.scene.background = new THREE.Color(col);
-    V2.scene.fog = new THREE.Fog(col, 14, 28);
-  }
+  updateCarDisplay();
 }
 
 function toggleTheme() {
@@ -734,19 +929,9 @@ function tickClock() {
 }
 
 // ────────────────────────────────────────────
-// OPEN DIRECTLY (No Auth / Preview Mode)
+// DIRECT LAUNCH & PROFILE
 // ────────────────────────────────────────────
 function openDirectly() {
-  const gate = document.getElementById('gate');
-  if (gate) gate.style.display = 'none';
-
-  const app = document.getElementById('app');
-  if (app) {
-    app.classList.add('visible');
-    app.style.opacity = '1';
-  }
-
-  // Load user from storage or mock default test user
   let user = null;
   try {
     user = JSON.parse(localStorage.getItem('v2_user'));
@@ -754,287 +939,208 @@ function openDirectly() {
 
   if (!user) {
     user = {
-      firstName: 'Тестовый',
-      lastName: 'Пользователь',
+      firstName: 'Армен',
+      lastName: 'Саргсян',
       carModel: 'UNI-K'
     };
   }
   V2.user = user;
   setupProfile(user);
-
-  // Init 3D after DOM is painted
-  requestAnimationFrame(() => {
-    setTimeout(initThreeJS, 100);
-  });
-
   startNotifPoll();
   startUserSync();
 }
 
-// ────────────────────────────────────────────
-// PROFILE
-// ────────────────────────────────────────────
 function setupProfile(user) {
   if (!user) return;
   const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Пользователь';
-  const car  = user.carModel || '—';
+  const car  = user.carModel || 'UNI-K';
   const ini  = ((user.firstName||'?')[0] + (user.lastName||'')[0]).toUpperCase();
 
-  const el = id => document.getElementById(id);
-  if (el('v2-uname'))  el('v2-uname').textContent  = name;
-  if (el('v2-ucar'))   el('v2-ucar').textContent   = car;
-  if (el('v2-avatar')) el('v2-avatar').textContent = ini || '?';
-  if (el('car-label')) el('car-label').textContent = car !== '—' ? car : 'Changan';
+  setText('v2-uname', name);
+  setText('v2-ucar', car);
+  setText('v2-avatar', ini || '?');
+  setText('car-label', 'Changan ' + car);
 
-  if (V2.carGroup) updateCarColor(car);
+  const sel = document.getElementById('car-select');
+  if (sel) {
+    for (let i = 0; i < sel.options.length; i++) {
+      if (car.toUpperCase().includes(sel.options[i].value.toUpperCase())) {
+        sel.selectedIndex = i;
+        break;
+      }
+    }
+  }
+
+  updateCarDisplay();
+}
+
+function switchCarModel(model) {
+  if (!V2.user) V2.user = {};
+  V2.user.carModel = model;
+  localStorage.setItem('v2_user', JSON.stringify(V2.user));
+  setupProfile(V2.user);
+  showToast('Модель изменена', `Выбрана модель Changan ${model}`, '🚗');
+}
+
+function updateCarDisplay() {
+  const carKey = Object.keys(CAR_PHOTOS).find(k => (V2.user?.carModel || '').toUpperCase().includes(k)) || 'UNI-K';
+  const carData = CAR_PHOTOS[carKey];
+  const isDark = V2.theme === 'dark';
+
+  const imgEl = document.getElementById('car-main-img');
+  if (imgEl) {
+    imgEl.onerror = () => {
+      imgEl.src = isDark ? SVG_CAR_DARK : SVG_CAR_LIGHT;
+    };
+    imgEl.src = isDark ? carData.dark : carData.light;
+  }
 }
 
 // ────────────────────────────────────────────
-// THREE.JS  — 3D Car
+// WEATHER
 // ────────────────────────────────────────────
-function initThreeJS() {
-  const canvas = document.getElementById('car-canvas');
-  const W = canvas.clientWidth, H = canvas.clientHeight;
+async function loadWeather() {
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=40.1811&longitude=44.5136' +
+      '&current_weather=true&hourly=temperature_2m,relativehumidity_2m,apparent_temperature,precipitation_probability,weathercode,windspeed_10m' +
+      '&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Asia%2FYerevan&forecast_days=3';
+    const r = await fetch(url);
+    V2.weatherData = await r.json();
 
-  // Scene
-  V2.scene = new THREE.Scene();
-  const bgCol = V2.theme === 'dark' ? 0x0a0a12 : 0xeceff8;
-  V2.scene.background = new THREE.Color(bgCol);
-  V2.scene.fog = new THREE.Fog(bgCol, 14, 28);
+    const cw = V2.weatherData.current_weather;
+    const temp  = Math.round(cw.temperature);
+    const wcode = cw.weathercode;
+    const wind  = Math.round(cw.windspeed);
+    const nowH  = new Date().getHours();
+    const hum   = V2.weatherData.hourly?.relativehumidity_2m?.[nowH] ?? '--';
 
-  // Camera
-  V2.camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
-  V2.camera.position.set(7, 3.2, 7);
-  V2.camera.lookAt(0, 0.3, 0);
+    setText('wx-emoji', wmoE(wcode));
+    setText('wx-temp',  (temp > 0 ? '+' : '') + temp + '°');
+    setText('wx-desc',  wmoD(wcode));
+    setText('wx-wind',  '💨 ' + wind + ' км/ч');
+    setText('wx-hum',   '💧 ' + hum + '%');
 
-  // Renderer
-  V2.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-  V2.renderer.setSize(W, H);
-  V2.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  V2.renderer.shadowMap.enabled = true;
-  V2.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  V2.renderer.outputEncoding = THREE.sRGBEncoding;
-  V2.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  V2.renderer.toneMappingExposure = 1.15;
-
-  // Lights
-  const ambient = new THREE.AmbientLight(0xffffff, 0.5);
-  V2.scene.add(ambient);
-
-  const key = new THREE.DirectionalLight(0xffffff, 1.4);
-  key.position.set(6, 10, 6);
-  key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.camera.near = 0.5;
-  key.shadow.camera.far  = 40;
-  key.shadow.camera.left = key.shadow.camera.bottom = -8;
-  key.shadow.camera.right = key.shadow.camera.top  =  8;
-  V2.scene.add(key);
-
-  const fill = new THREE.DirectionalLight(0x8ab4ff, 0.45);
-  fill.position.set(-5, 4, -4);
-  V2.scene.add(fill);
-
-  const rim = new THREE.DirectionalLight(0xff7b4d, 0.35);
-  rim.position.set(0, -1, -6);
-  V2.scene.add(rim);
-
-  // Accent point light (brand orange glow under car)
-  const pOrange = new THREE.PointLight(0xff6b35, 1.2, 5);
-  pOrange.position.set(0, -0.8, 0);
-  V2.scene.add(pOrange);
-
-  // Ground
-  const gnd = new THREE.Mesh(
-    new THREE.PlaneGeometry(24, 24),
-    new THREE.MeshStandardMaterial({
-      color: V2.theme === 'dark' ? 0x080810 : 0xd8dce8,
-      metalness: 0.2, roughness: 0.85
-    })
-  );
-  gnd.rotation.x = -Math.PI / 2;
-  gnd.position.y = -1.08;
-  gnd.receiveShadow = true;
-  V2.scene.add(gnd);
-
-  // Grid lines on ground
-  const grid = new THREE.GridHelper(20, 20,
-    V2.theme === 'dark' ? 0x1a1a2e : 0xb0b4cc,
-    V2.theme === 'dark' ? 0x111120 : 0xc0c4d8
-  );
-  grid.position.y = -1.07;
-  V2.scene.add(grid);
-
-  // Build car
-  V2.carGroup = buildCar(V2.user?.carModel || 'default');
-  V2.scene.add(V2.carGroup);
-
-  // Clock for animation
-  V2.clock = new THREE.Clock();
-
-  // Resize
-  window.addEventListener('resize', () => {
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    V2.camera.aspect = w / h;
-    V2.camera.updateProjectionMatrix();
-    V2.renderer.setSize(w, h);
-  });
-
-  // Animate
-  (function loop() {
-    V2.raf = requestAnimationFrame(loop);
-    const t = V2.clock.getElapsedTime();
-    if (V2.carGroup) {
-      V2.carGroup.rotation.y = t * 0.28;
-      V2.carGroup.position.y = Math.sin(t * 1.1) * 0.04;
-    }
-    V2.renderer.render(V2.scene, V2.camera);
-  })();
+    renderWeatherModal();
+  } catch(e) { console.warn('Weather error', e); }
 }
 
-// Car color map by model keyword
-function carColor(model) {
-  const m = (model || '').toLowerCase();
-  if (m.includes('cs55'))  return 0x1a3d6e;  // Deep Blue
-  if (m.includes('cs35'))  return 0xc5c5cc;  // Silver
-  if (m.includes('cs75'))  return 0x111111;  // Onyx Black
-  if (m.includes('cs85'))  return 0x8b6914;  // Champagne Gold
-  if (m.includes('uni-t') || m.includes('unit')) return 0xcc2222; // Racing Red
-  if (m.includes('uni-v') || m.includes('univ')) return 0x1a5c30; // Forest Green
-  if (m.includes('uni-k') || m.includes('unik')) return 0x3a2066; // Cosmic Purple
-  return 0xeeeee8; // Pearl White (default)
+function wmoE(c) {
+  if (c===0) return '☀️';
+  if (c<=2)  return '⛅';
+  if (c<=3)  return '☁️';
+  if (c<=49) return '🌫️';
+  if (c<=65) return '🌧️';
+  if (c<=77) return '❄️';
+  if (c<=82) return '🌦️';
+  if (c<=86) return '🌨️';
+  return '⛈️';
+}
+function wmoD(c) {
+  if (c===0) return 'Ясно';
+  if (c===1) return 'В основном ясно';
+  if (c===2) return 'Переменная облачность';
+  if (c===3) return 'Пасмурно';
+  if (c<=49) return 'Туман';
+  if (c<=55) return 'Морось';
+  if (c<=65) return 'Дождь';
+  if (c<=77) return 'Снег';
+  if (c<=82) return 'Ливень';
+  if (c<=86) return 'Снегопад';
+  return 'Гроза';
 }
 
-function updateCarColor(model) {
-  if (!V2.carGroup) return;
-  const col = carColor(model);
-  V2.carGroup.traverse(c => {
-    if (c.isMesh && c.userData.body) c.material.color.setHex(col);
-  });
+function openWeatherModal() {
+  closeAll();
+  V2.currentWeatherDay = 0;
+  document.querySelectorAll('.weather-day-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  renderWeatherModal();
+  document.getElementById('weather-modal')?.classList.remove('hidden');
 }
 
-function buildCar(model) {
-  const grp = new THREE.Group();
-  const col = carColor(model);
+function closeWeatherModal() {
+  document.getElementById('weather-modal')?.classList.add('hidden');
+}
 
-  // Materials
-  const bodyM = new THREE.MeshPhysicalMaterial({
-    color: col, metalness: 0.88, roughness: 0.12,
-    clearcoat: 1, clearcoatRoughness: 0.04,
-  });
-  const glassM = new THREE.MeshPhysicalMaterial({
-    color: 0x7799cc, metalness: 0, roughness: 0,
-    transmission: 0.8, opacity: 0.35, transparent: true,
-  });
-  const tireM = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
-  const rimM  = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.95, roughness: 0.08 });
-  const darkM = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.6 });
-  const hlM   = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.2 });
-  const tlM   = new THREE.MeshStandardMaterial({ color: 0xff2222, emissive: 0xff1111, emissiveIntensity: 0.7 });
-  const drlM  = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 2 });
-  const dhM   = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.9, roughness: 0.1 });
+function setWeatherDay(day) {
+  V2.currentWeatherDay = day;
+  document.querySelectorAll('.weather-day-btn').forEach((b, i) => b.classList.toggle('active', i === day));
+  renderWeatherModal();
+}
 
-  function body(geo, mat, x, y, z, rx=0,ry=0,rz=0, isBody=false) {
-    const m = new THREE.Mesh(geo, mat);
-    m.position.set(x, y, z);
-    m.rotation.set(rx, ry, rz);
-    m.castShadow = true;
-    if (isBody) m.userData.body = true;
-    grp.add(m);
-    return m;
+function renderWeatherModal() {
+  if (!V2.weatherData) return;
+  const h = V2.weatherData.hourly;
+  const d = V2.weatherData.daily;
+  const cw = V2.weatherData.current_weather;
+  const nowH = new Date().getHours();
+  const dayIdx = V2.currentWeatherDay;
+
+  const dayNames = ['Сегодня', 'Завтра', 'Послезавтра'];
+  setText('modal-day-title', dayNames[dayIdx]);
+
+  if (dayIdx === 0 && cw) {
+    const code = cw.weathercode;
+    const maxT = Math.round(d.temperature_2m_max[0]);
+    const minT = Math.round(d.temperature_2m_min[0]);
+    const feels = h.apparent_temperature ? Math.round(h.apparent_temperature[nowH]) : Math.round(cw.temperature);
+    const hum = h.relativehumidity_2m ? h.relativehumidity_2m[nowH] : '--';
+    const precip = h.precipitation_probability ? h.precipitation_probability[nowH] : 0;
+
+    setText('modal-day-emoji', wmoE(code));
+    setText('modal-day-desc', wmoD(code));
+    setText('modal-day-temp', (cw.temperature > 0 ? '+' : '') + Math.round(cw.temperature) + '°');
+    setText('modal-day-range', `мин ${minT > 0 ? '+' : ''}${minT}° · макс ${maxT > 0 ? '+' : ''}${maxT}°`);
+    setText('modal-feels', `Ощущается ${feels > 0 ? '+' : ''}${feels}°`);
+    setText('modal-wind', `💨 ${Math.round(cw.windspeed)} км/ч`);
+    setText('modal-humid', `💧 ${hum}%`);
+    setText('modal-precip', `🌧️ Осадки: ${precip}%`);
+  } else if (d) {
+    const maxT = Math.round(d.temperature_2m_max[dayIdx]);
+    const minT = Math.round(d.temperature_2m_min[dayIdx]);
+    const code = d.weathercode[dayIdx];
+
+    setText('modal-day-emoji', wmoE(code));
+    setText('modal-day-desc', wmoD(code));
+    setText('modal-day-temp', (maxT > 0 ? '+' : '') + maxT + '°');
+    setText('modal-day-range', `мин ${minT > 0 ? '+' : ''}${minT}° · макс ${maxT > 0 ? '+' : ''}${maxT}°`);
+    setText('modal-feels', `Днём до ${maxT > 0 ? '+' : ''}${maxT}°`);
+    setText('modal-wind', `Ночью до ${minT > 0 ? '+' : ''}${minT}°`);
+    setText('modal-humid', `Прогноз на день`);
+    setText('modal-precip', `🌧️ Осадки: по прогнозу`);
   }
 
-  // ── Chassis (lower body) ──
-  body(new THREE.BoxGeometry(4.3, 0.72, 1.94), bodyM, 0, -0.08, 0, 0,0,0, true);
-  // ── Cabin ──
-  body(new THREE.BoxGeometry(2.9, 0.82, 1.78), bodyM, -0.1, 0.77, 0, 0,0,0, true);
-  // ── Hood ramp ──
-  body(new THREE.BoxGeometry(0.7, 0.5, 1.78), bodyM, 1.25, 0.51, 0, 0,0,0, true);
-  // ── Trunk ramp ──
-  body(new THREE.BoxGeometry(0.55, 0.45, 1.78), bodyM, -1.6, 0.51, 0, 0,0,0, true);
-  // ── Roof ──
-  body(new THREE.BoxGeometry(2.65, 0.1, 1.62), bodyM, -0.1, 1.18, 0, 0,0,0, true);
-  // ── Roof rails ──
-  body(new THREE.BoxGeometry(2.3, 0.05, 0.05), darkM,  -0.1, 1.24,  0.78);
-  body(new THREE.BoxGeometry(2.3, 0.05, 0.05), darkM,  -0.1, 1.24, -0.78);
-  // ── Front bumper ──
-  body(new THREE.BoxGeometry(0.14, 0.36, 1.94), darkM, 2.22, -0.24, 0);
-  // ── Rear bumper ──
-  body(new THREE.BoxGeometry(0.14, 0.36, 1.94), darkM,-2.22, -0.24, 0);
-  // ── Grille ──
-  body(new THREE.BoxGeometry(0.06, 0.28, 1.28), darkM, 2.19, -0.04, 0);
-  // ── Headlights L/R ──
-  body(new THREE.BoxGeometry(0.1, 0.13, 0.38), hlM, 2.2, 0.13,  0.68);
-  body(new THREE.BoxGeometry(0.1, 0.13, 0.38), hlM, 2.2, 0.13, -0.68);
-  // ── DRL strip ──
-  body(new THREE.BoxGeometry(0.05, 0.04, 0.88), drlM, 2.18, 0.22, 0);
-  // ── Taillights L/R ──
-  body(new THREE.BoxGeometry(0.1, 0.13, 0.42), tlM,-2.2, 0.13,  0.68);
-  body(new THREE.BoxGeometry(0.1, 0.13, 0.42), tlM,-2.2, 0.13, -0.68);
-  // ── Tail LED strip ──
-  body(new THREE.BoxGeometry(0.05, 0.04, 1.0),
-    new THREE.MeshStandardMaterial({ color:0xff2222, emissive:0xff1111, emissiveIntensity:0.5 }),
-    -2.18, 0.13, 0);
-  // ── Skid plate front ──
-  body(new THREE.BoxGeometry(0.08, 0.1, 1.4),
-    new THREE.MeshStandardMaterial({ color:0x777777, metalness:.5 }),
-    2.2, -0.4, 0);
-  // ── Door handles ──
-  body(new THREE.BoxGeometry(0.28, 0.06, 0.06), dhM,  0.55, 0.05,  0.98);
-  body(new THREE.BoxGeometry(0.28, 0.06, 0.06), dhM, -0.55, 0.05,  0.98);
-  body(new THREE.BoxGeometry(0.28, 0.06, 0.06), dhM,  0.55, 0.05, -0.98);
-  body(new THREE.BoxGeometry(0.28, 0.06, 0.06), dhM, -0.55, 0.05, -0.98);
-  // ── Windows (side) ──
-  body(new THREE.PlaneGeometry(1.9, 0.54), glassM, -0.1, 0.93,  0.89);
-  body(new THREE.PlaneGeometry(1.9, 0.54), glassM, -0.1, 0.93, -0.89, 0, Math.PI, 0);
-  // ── Windshield ──
-  body(new THREE.PlaneGeometry(0.68, 0.62), glassM, 0.86, 0.87, 0, 0, Math.PI/2, Math.PI/9);
-  // ── Antenna ──
-  body(new THREE.CylinderGeometry(.012,.012,.42,8), darkM, -0.85, 1.23, 0.32);
+  // 24 Hour scroll strip
+  const scrollEl = document.getElementById('weather-scroll');
+  if (scrollEl && h) {
+    const startIdx = dayIdx * 24;
+    const endIdx = startIdx + 24;
+    let html = '';
+    for (let i = startIdx; i < endIdx && i < h.time.length; i++) {
+      const hour = parseInt(h.time[i].slice(11, 13));
+      const temp = Math.round(h.temperature_2m[i]);
+      const code = h.weathercode[i];
+      const isNow = (dayIdx === 0 && hour === nowH);
 
-  // ── WHEELS ──
-  function addWheel(wx, wz) {
-    const wg = new THREE.Group();
-    wg.position.set(wx, -0.53, wz);
-
-    // Tyre
-    const tyre = new THREE.Mesh(new THREE.CylinderGeometry(.52,.52,.36,36), tireM);
-    tyre.rotation.x = Math.PI/2; tyre.castShadow = true;
-    wg.add(tyre);
-    // Inner disc
-    const disc = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.37,16), rimM);
-    disc.rotation.x = Math.PI/2;
-    wg.add(disc);
-    // 5 spokes
-    for (let i = 0; i < 5; i++) {
-      const sp = new THREE.Mesh(new THREE.BoxGeometry(.055,.38,.38), rimM);
-      sp.rotation.z = (i/5)*Math.PI;
-      wg.add(sp);
+      html += `
+        <div class="hero-forecast-item ${isNow ? 'now' : ''}">
+          <div style="font-size:10px;">${hour}:00</div>
+          <div style="font-size:18px;">${wmoE(code)}</div>
+          <div class="fc-temp">${temp > 0 ? '+' : ''}${temp}°</div>
+        </div>`;
     }
-    // Hub
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.38,16), rimM);
-    hub.rotation.x = Math.PI/2;
-    wg.add(hub);
-    // Arch cover
-    const arch = new THREE.Mesh(
-      new THREE.CylinderGeometry(.58,.58,.41,32,1,true,Math.PI,Math.PI),
-      new THREE.MeshPhysicalMaterial({ color:col, metalness:.88, roughness:.12, clearcoat:1, clearcoatRoughness:.04 })
-    );
-    arch.userData.body = true;
-    arch.rotation.x = Math.PI/2;
-    wg.add(arch);
-
-    grp.add(wg);
-    return wg;
+    scrollEl.innerHTML = html;
   }
+}
 
-  addWheel( 1.38,  0.98);
-  addWheel( 1.38, -0.98);
-  addWheel(-1.38,  0.98);
-  addWheel(-1.38, -0.98);
-
-  grp.position.y = 0.06;
-  return grp;
+// ────────────────────────────────────────────
+// RADIO MODAL
+// ────────────────────────────────────────────
+function openRadioModal() {
+  closeAll();
+  document.getElementById('radio-modal')?.classList.remove('hidden');
+}
+function closeRadioModal() {
+  document.getElementById('radio-modal')?.classList.add('hidden');
 }
 
 // ────────────────────────────────────────────
@@ -1064,6 +1170,8 @@ function openSheet() {
 function closeAll() {
   PANELS.forEach(p => document.getElementById(p)?.classList.remove('open'));
   document.getElementById('app-sheet')?.classList.remove('open');
+  document.getElementById('weather-modal')?.classList.add('hidden');
+  document.getElementById('radio-modal')?.classList.add('hidden');
   document.getElementById('overlay').classList.remove('show');
 }
 
@@ -1103,7 +1211,7 @@ function makeCall() {
 function toggleBT() {
   V2.bt = !V2.bt;
   const btn = document.getElementById('bt-btn');
-  if (btn) btn.classList.toggle('on', V2.bt);
+  if (btn) btn.classList.toggle('active', V2.bt);
   showToast('Bluetooth', V2.bt ? 'Включён' : 'Выключен', V2.bt ? '🔵' : '⚫');
 }
 
@@ -1118,20 +1226,22 @@ function buildAppsGrid() {
     const d = document.createElement('div');
     d.className = 'app-card';
     d.innerHTML = `
-      <div class="app-icon-wrap" style="background:${app.color}22;border:1px solid ${app.color}55;">
+      <div class="app-icon-wrap" style="background:${app.color}22;border:1.5px solid ${app.color}55;">
         <span>${app.icon}</span>
       </div>
       <div class="app-label">${app.name}</div>`;
     d.addEventListener('click', () => {
       closeAll();
-      if (app.url) window.open(app.url, '_blank');
+      if (app.action === 'radio') openRadioModal();
+      else if (app.action === 'weather') openWeatherModal();
+      else if (app.url) window.open(app.url, '_blank');
     });
     grid.appendChild(d);
   });
 }
 
 // ────────────────────────────────────────────
-// QUICK ACCESS (settings)
+// QUICK ACCESS (Settings Checklist)
 // ────────────────────────────────────────────
 function buildQAList() {
   const list = document.getElementById('qa-list');
@@ -1155,60 +1265,9 @@ function toggleQA(id) {
   if (idx === -1) quickApps.push(id);
   else quickApps.splice(idx, 1);
   localStorage.setItem('v2_qa', JSON.stringify(quickApps));
-  // Update checkbox
   const el = document.getElementById('qa-' + id);
   if (el) el.classList.toggle('on', quickApps.includes(id));
   showToast('Настройки', 'Быстрый доступ обновлён', '⚙️');
-}
-
-// ────────────────────────────────────────────
-// WEATHER
-// ────────────────────────────────────────────
-async function loadWeather() {
-  try {
-    const url = 'https://api.open-meteo.com/v1/forecast?latitude=40.1811&longitude=44.5136' +
-      '&current_weather=true&hourly=relativehumidity_2m,windspeed_10m&timezone=Asia%2FYerevan&forecast_days=1';
-    const r = await fetch(url);
-    const d = await r.json();
-    const cw = d.current_weather;
-    const temp  = Math.round(cw.temperature);
-    const wcode = cw.weathercode;
-    const wind  = Math.round(cw.windspeed);
-    const nowH  = new Date().toLocaleString('ru-RU',{timeZone:'Asia/Yerevan',hour:'2-digit',hour12:false});
-    const hIdx  = parseInt(nowH);
-    const hum   = d.hourly?.relativehumidity_2m?.[hIdx] ?? '--';
-
-    setText('wx-emoji', wmoE(wcode));
-    setText('wx-temp',  temp + '°');
-    setText('wx-desc',  wmoD(wcode));
-    setText('wx-wind',  '💨 ' + wind + ' км/ч');
-    setText('wx-hum',   '💧 ' + hum + '%');
-  } catch(e) { console.warn('Weather error', e); }
-}
-
-function wmoE(c) {
-  if (c===0) return '☀️';
-  if (c<=2)  return '⛅';
-  if (c<=3)  return '☁️';
-  if (c<=49) return '🌫️';
-  if (c<=65) return '🌧️';
-  if (c<=77) return '❄️';
-  if (c<=82) return '🌦️';
-  if (c<=86) return '🌨️';
-  return '⛈️';
-}
-function wmoD(c) {
-  if (c===0) return 'Ясно';
-  if (c===1) return 'В основном ясно';
-  if (c===2) return 'Переменная облачность';
-  if (c===3) return 'Облачно';
-  if (c<=49) return 'Туман';
-  if (c<=55) return 'Морось';
-  if (c<=65) return 'Дождь';
-  if (c<=77) return 'Снег';
-  if (c<=82) return 'Ливень';
-  if (c<=86) return 'Снегопад';
-  return 'Гроза';
 }
 
 // ────────────────────────────────────────────
@@ -1258,7 +1317,6 @@ function renderNotifList() {
     </div>`).join('');
 }
 
-// Reset badge when opening panel
 document.addEventListener('click', e => {
   if (e.target.closest('#notif-btn') || e.target.closest('#notif-panel')) {
     V2.unread = 0;
@@ -1268,8 +1326,8 @@ document.addEventListener('click', e => {
 });
 
 // ────────────────────────────────────────────
-// TOAST
-// ────────────────────────────────────────────
+// TOAST & SOUND
+// ────────────────────────────────────
 let toastTimer = null;
 function showToast(title, body, icon='🔔') {
   setText('t-title', title);
@@ -1281,9 +1339,6 @@ function showToast(title, body, icon='🔔') {
   toastTimer = setTimeout(() => t.classList.remove('show'), 4500);
 }
 
-// ────────────────────────────────────────────
-// NOTIFICATION SOUND  (Web Audio API)
-// ────────────────────────────────────────────
 function playSound() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1303,7 +1358,7 @@ function playSound() {
 }
 
 // ────────────────────────────────────────────
-// USER SYNC (admin can change data live)
+// USER SYNC
 // ────────────────────────────────────────────
 function startUserSync() {
   V2.syncTimer = setInterval(async () => {
@@ -1329,10 +1384,6 @@ function startUserSync() {
       }
     } catch(e) {}
   }, 5000);
-}
-
-function lockOut() {
-  // No lockout on test page
 }
 
 // ────────────────────────────────────────────
