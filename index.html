@@ -657,13 +657,21 @@
         </div>
 
         <!-- Current weather -->
-        <div class="hero-weather-main">
-          <div class="hero-weather-current">
-            <div id="hero-weather-emoji" class="text-4xl leading-none">🌤️</div>
-            <div>
-              <div class="hero-temp-big"><span id="hero-temp">--</span>°</div>
-              <div id="hero-weather-desc" class="hero-weather-desc">Загрузка...</div>
+        <!-- Current weather -->
+        <div class="hero-weather-main cursor-pointer" onclick="openWeatherModal()" title="Нажмите, чтобы открыть подробный прогноз погоды">
+          <div class="flex items-start justify-between gap-2">
+            <div class="hero-weather-current">
+              <div id="hero-weather-emoji" class="text-4xl leading-none">🌤️</div>
+              <div>
+                <div class="hero-temp-big"><span id="hero-temp">--</span>°</div>
+                <div id="hero-weather-desc" class="hero-weather-desc">Загрузка...</div>
+              </div>
             </div>
+            <!-- Кнопка Погода -->
+            <button onclick="event.stopPropagation(); openWeatherModal();" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0" style="background:rgba(255,107,0,0.12); color:#FF6B00; border:1px solid rgba(255,107,0,0.3); cursor:pointer;">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+              <span>Погода</span>
+            </button>
           </div>
           <div class="hero-weather-meta">
             <span class="hero-weather-tag" id="hero-feels">Ощущается --°</span>
@@ -677,23 +685,8 @@
         </div>
       </div>
 
-      <!-- Bottom section: Day tabs + Forecast scroll -->
-      <div class="hero-bottom">
-        <div class="hero-day-tabs">
-          <button id="wday-0" onclick="setWeatherDay(0)" class="weather-day-btn active">Сегодня</button>
-          <button id="wday-1" onclick="setWeatherDay(1)" class="weather-day-btn">Завтра</button>
-          <button id="wday-2" onclick="setWeatherDay(2)" class="weather-day-btn">Послезавтра</button>
-        </div>
-        <div id="weather-scroll" class="hero-forecast-row">
-          <div class="hero-forecast-item" style="min-width:100px;">
-            <div class="fc-emoji">⏳</div>
-            <div class="fc-temp" style="font-size:12px; color:var(--text-dim);">Загрузка...</div>
-          </div>
-        </div>
-      </div>
-
       <!-- Search bar -->
-      <div style="padding: 0 16px 16px;">
+      <div style="padding: 16px 16px 16px;">
         <div class="search-bar flex items-center gap-2 px-3 py-2.5">
           <svg class="w-4 h-4 flex-shrink-0" style="color:#FF6B00;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input
@@ -872,11 +865,11 @@
           <div class="text-left"><div class="font-bold text-sm">Полный экран</div><div class="text-xs text-[#888]">Развернуть</div></div>
         </button>
 
-        <button class="card-tile p-4 flex items-center gap-3" onclick="openLink('https://yandex.ru/pogoda/yerevan', 'Погода Ереван')">
+        <button class="card-tile p-4 flex items-center gap-3" onclick="openWeatherModal()">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(234,179,8,0.1);">
             <svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
           </div>
-          <div class="text-left"><div class="font-bold text-sm">Погода</div><div class="text-xs text-[#888]">Ереван</div></div>
+          <div class="text-left"><div class="font-bold text-sm">Погода</div><div class="text-xs text-[#888]">Прогноз погоды</div></div>
         </button>
 
       </div>
@@ -921,6 +914,75 @@
         <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#FF6B00,#CC5500);"><svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
         <div><div class="font-semibold text-sm">Авторадио</div><div class="text-xs text-[#888]">Русская классика</div></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     WEATHER MODAL
+════════════════════════════════════════════════════ -->
+<div id="weather-modal" class="modal-overlay hidden" onclick="event.target===this&&closeWeatherModal()">
+  <div class="modal-box p-5 sm:p-6" style="width:94vw; max-width:680px;" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style="background:linear-gradient(135deg,#FF6B00,#CC4400); color:white; box-shadow:0 2px 10px rgba(255,107,0,0.4);">
+          🌤️
+        </div>
+        <div>
+          <div class="font-bold text-base">Прогноз погоды — Ереван</div>
+          <div id="modal-weather-subtitle" class="text-xs" style="color:var(--text-muted);">Почасовой прогноз погоды</div>
+        </div>
+      </div>
+      <button onclick="closeWeatherModal()" class="nav-btn p-2" title="Закрыть">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Day switcher tabs (default: Сегодня active) -->
+    <div class="flex gap-2 mb-4 p-1 rounded-xl" style="background:var(--bg3); border:1px solid var(--border);">
+      <button id="modal-wday-0" onclick="setWeatherDay(0)" class="weather-day-btn flex-1 py-2 text-xs font-bold rounded-lg transition active">
+        Сегодня
+      </button>
+      <button id="modal-wday-1" onclick="setWeatherDay(1)" class="weather-day-btn flex-1 py-2 text-xs font-bold rounded-lg transition">
+        Завтра
+      </button>
+      <button id="modal-wday-2" onclick="setWeatherDay(2)" class="weather-day-btn flex-1 py-2 text-xs font-bold rounded-lg transition">
+        Послезавтра
+      </button>
+    </div>
+
+    <!-- Selected day summary card -->
+    <div class="p-4 rounded-xl mb-4 flex items-center justify-between gap-4" style="background:var(--bg3); border:1px solid var(--border);">
+      <div class="flex items-center gap-3">
+        <div id="modal-day-emoji" class="text-4xl">🌤️</div>
+        <div>
+          <div id="modal-day-title" class="font-bold text-sm">Сегодня</div>
+          <div id="modal-day-desc" class="text-xs mt-0.5" style="color:var(--text-muted);">Загрузка...</div>
+        </div>
+      </div>
+      <div class="text-right">
+        <div id="modal-day-temp" class="text-2xl font-black text-[#FF6B00]">--°</div>
+        <div id="modal-day-range" class="text-xs" style="color:var(--text-muted);">мин --° · макс --°</div>
+      </div>
+    </div>
+
+    <!-- Hourly forecast row (exact as shown in photo) -->
+    <div class="rounded-xl p-2.5" style="background:var(--bg3); border:1px solid var(--border);">
+      <div class="text-[11px] font-bold uppercase tracking-wider px-2 py-1 mb-1" style="color:var(--text-muted);">
+        Почасовой прогноз
+      </div>
+      <div id="weather-scroll" class="hero-forecast-row">
+        <!-- Rendered by renderWeather() -->
+      </div>
+    </div>
+
+    <!-- Weather details tags -->
+    <div id="modal-weather-tags" class="flex flex-wrap gap-2 mt-3 text-xs">
+      <span class="hero-weather-tag" id="modal-feels">Ощущается --°</span>
+      <span class="hero-weather-tag" id="modal-wind">💨 -- м/с</span>
+      <span class="hero-weather-tag" id="modal-humid">💧 --%</span>
+      <span class="hero-weather-tag" id="modal-precip">🌧️ Осадки: --%</span>
     </div>
   </div>
 </div>
@@ -1242,15 +1304,32 @@ async function loadWeather() {
     weatherData = await res.json();
     renderWeather();
   } catch (e) {
-    document.getElementById('weather-scroll').innerHTML =
-      '<div class="hero-forecast-item" style="min-width:100px;"><span style="color:var(--text-dim);font-size:11px;">Погода недоступна</span></div>';
+    const scrollEl = document.getElementById('weather-scroll');
+    if (scrollEl) {
+      scrollEl.innerHTML = '<div class="hero-forecast-item" style="min-width:100px;"><span style="color:var(--text-dim);font-size:11px;">Погода недоступна</span></div>';
+    }
   }
 }
 
+function openWeatherModal() {
+  currentWeatherDay = 0; // Default: СЕГОДНЯ
+  document.querySelectorAll('#weather-modal .weather-day-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === 0);
+  });
+  const m = document.getElementById('weather-modal');
+  if (m) m.classList.remove('hidden');
+  lucide.createIcons();
+  renderWeather();
+}
+
+function closeWeatherModal() {
+  const m = document.getElementById('weather-modal');
+  if (m) m.classList.add('hidden');
+}
 
 function setWeatherDay(day) {
   currentWeatherDay = day;
-  document.querySelectorAll('.weather-day-btn').forEach((b, i) => {
+  document.querySelectorAll('#weather-modal .weather-day-btn').forEach((b, i) => {
     b.classList.toggle('active', i === day);
   });
   renderWeather();
@@ -1260,25 +1339,16 @@ function renderWeather() {
   if (!weatherData) return;
   const h = weatherData.hourly;
   const d = weatherData.daily;
-  const now = new Date();
+  const cw = weatherData.current_weather;
+  const todayStr = (cw ? cw.time : new Date().toISOString()).slice(0, 10);
+  const nowH = new Date().getHours();
 
-  // Find hour offset for the selected day
-  const todayStr = weatherData.current_weather.time.slice(0, 10);
-  const today = new Date(todayStr);
-  const targetDate = new Date(today);
-  targetDate.setDate(today.getDate() + currentWeatherDay);
-  const targetDateStr = targetDate.toISOString().slice(0, 10);
-
-  // Update current weather in hero (only for today)
-  if (currentWeatherDay === 0 && weatherData.current_weather) {
-    const cw = weatherData.current_weather;
+  // 1. ALWAYS update Hero Widget with current today's weather
+  if (cw) {
     const cWmo = wmo(cw.weathercode);
-    const nowH = new Date().getHours();
-    const hIdx = weatherData.hourly.time.findIndex(t => t.startsWith(todayStr + 'T' + String(nowH).padStart(2,'0')));
-    const feelsLike = hIdx >= 0 && weatherData.hourly.apparent_temperature
-      ? Math.round(weatherData.hourly.apparent_temperature[hIdx]) : null;
-    const humidity = hIdx >= 0 && weatherData.hourly.relativehumidity_2m
-      ? weatherData.hourly.relativehumidity_2m[hIdx] : null;
+    const hIdx = h.time.findIndex(t => t.startsWith(todayStr + 'T' + String(nowH).padStart(2, '0')));
+    const feelsLike = (hIdx >= 0 && h.apparent_temperature) ? Math.round(h.apparent_temperature[hIdx]) : null;
+    const humidity = (hIdx >= 0 && h.relativehumidity_2m) ? h.relativehumidity_2m[hIdx] : null;
 
     const heroEmoji = document.getElementById('hero-weather-emoji');
     const heroTemp = document.getElementById('hero-temp');
@@ -1293,50 +1363,104 @@ function renderWeather() {
     if (heroFeels && feelsLike !== null) heroFeels.textContent = `Ощущается ${feelsLike > 0 ? '+' : ''}${feelsLike}°`;
     if (heroWind) heroWind.textContent = `💨 ${Math.round(cw.windspeed / 3.6)} м/с`;
     if (heroHumid && humidity !== null) heroHumid.textContent = `💧 ${humidity}%`;
-  } else {
-    // Other days — show daily min/max in hero area
-    const maxT = Math.round(d.temperature_2m_max[currentWeatherDay]);
-    const minT = Math.round(d.temperature_2m_min[currentWeatherDay]);
-    const dayCode = d.weathercode[currentWeatherDay];
-    const dayW = wmo(dayCode);
-    const heroEmoji = document.getElementById('hero-weather-emoji');
-    const heroTemp = document.getElementById('hero-temp');
-    const heroDesc = document.getElementById('hero-weather-desc');
-    if (heroEmoji) heroEmoji.textContent = dayW.e;
-    if (heroTemp) heroTemp.textContent = (maxT > 0 ? '+' : '') + maxT;
-    if (heroDesc) heroDesc.textContent = dayW.d + ` · мин ${minT > 0 ? '+' : ''}${minT}°`;
   }
 
-  // Build hourly forecast strip
+  // 2. Update Weather Modal for the selected day (0 = Сегодня, 1 = Завтра, 2 = Послезавтра)
+  const today = new Date(todayStr);
+  const targetDate = new Date(today);
+  targetDate.setDate(today.getDate() + currentWeatherDay);
+  const targetDateStr = targetDate.toISOString().slice(0, 10);
+
+  const dayNames = ['Сегодня', 'Завтра', 'Послезавтра'];
+  const dayName = dayNames[currentWeatherDay] || 'День';
+  const weekdays = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+  const months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+  const fullDateLabel = `${dayName} (${weekdays[targetDate.getDay()]}, ${targetDate.getDate()} ${months[targetDate.getMonth()]})`;
+
+  const modalTitle = document.getElementById('modal-day-title');
+  const modalDesc = document.getElementById('modal-day-desc');
+  const modalEmoji = document.getElementById('modal-day-emoji');
+  const modalTemp = document.getElementById('modal-day-temp');
+  const modalRange = document.getElementById('modal-day-range');
+  const modalFeels = document.getElementById('modal-feels');
+  const modalWind = document.getElementById('modal-wind');
+  const modalHumid = document.getElementById('modal-humid');
+  const modalPrecip = document.getElementById('modal-precip');
+
+  if (modalTitle) modalTitle.textContent = fullDateLabel;
+
+  if (currentWeatherDay === 0 && cw) {
+    const cWmo = wmo(cw.weathercode);
+    const maxT = d ? Math.round(d.temperature_2m_max[0]) : Math.round(cw.temperature);
+    const minT = d ? Math.round(d.temperature_2m_min[0]) : Math.round(cw.temperature);
+    const hIdx = h.time.findIndex(t => t.startsWith(todayStr + 'T' + String(nowH).padStart(2, '0')));
+    const feelsLike = (hIdx >= 0 && h.apparent_temperature) ? Math.round(h.apparent_temperature[hIdx]) : Math.round(cw.temperature);
+    const humidity = (hIdx >= 0 && h.relativehumidity_2m) ? h.relativehumidity_2m[hIdx] : '--';
+    const precipProb = (hIdx >= 0 && h.precipitation_probability) ? h.precipitation_probability[hIdx] : 0;
+
+    if (modalEmoji) modalEmoji.textContent = cWmo.e;
+    if (modalDesc) modalDesc.textContent = cWmo.d;
+    if (modalTemp) modalTemp.textContent = (cw.temperature > 0 ? '+' : '') + Math.round(cw.temperature) + '°';
+    if (modalRange) modalRange.textContent = `мин ${minT > 0 ? '+' : ''}${minT}° · макс ${maxT > 0 ? '+' : ''}${maxT}°`;
+    if (modalFeels) modalFeels.textContent = `Ощущается ${feelsLike > 0 ? '+' : ''}${feelsLike}°`;
+    if (modalWind) modalWind.textContent = `💨 ${Math.round(cw.windspeed / 3.6)} м/с`;
+    if (modalHumid) modalHumid.textContent = `💧 ${humidity}%`;
+    if (modalPrecip) modalPrecip.textContent = `🌧️ Осадки: ${precipProb}%`;
+  } else if (d) {
+    const maxT = Math.round(d.temperature_2m_max[currentWeatherDay]);
+    const minT = Math.round(d.temperature_2m_min[currentWeatherDay]);
+    const dayW = wmo(d.weathercode[currentWeatherDay]);
+
+    if (modalEmoji) modalEmoji.textContent = dayW.e;
+    if (modalDesc) modalDesc.textContent = dayW.d;
+    if (modalTemp) modalTemp.textContent = (maxT > 0 ? '+' : '') + maxT + '°';
+    if (modalRange) modalRange.textContent = `мин ${minT > 0 ? '+' : ''}${minT}° · макс ${maxT > 0 ? '+' : ''}${maxT}°`;
+
+    let maxPrecip = 0;
+    h.time.forEach((t, idx) => {
+      if (t.startsWith(targetDateStr) && h.precipitation_probability && h.precipitation_probability[idx] > maxPrecip) {
+        maxPrecip = h.precipitation_probability[idx];
+      }
+    });
+
+    if (modalFeels) modalFeels.textContent = `Днём до ${maxT > 0 ? '+' : ''}${maxT}°`;
+    if (modalWind) modalWind.textContent = `Ночью до ${minT > 0 ? '+' : ''}${minT}°`;
+    if (modalHumid) modalHumid.textContent = `Прогноз на весь день`;
+    if (modalPrecip) modalPrecip.textContent = `🌧️ Осадки до: ${maxPrecip}%`;
+  }
+
+  // 3. Render 24-hour horizontal forecast strip inside modal
   const scrollEl = document.getElementById('weather-scroll');
-  const items = [];
-  const currentHour = new Date().getHours();
+  if (scrollEl) {
+    const items = [];
+    h.time.forEach((t, idx) => {
+      if (!t.startsWith(targetDateStr)) return;
+      const hour = parseInt(t.slice(11, 13));
+      const temp = Math.round(h.temperature_2m[idx]);
+      const code = h.weathercode[idx];
+      const precip = h.precipitation_probability ? h.precipitation_probability[idx] : 0;
+      const w = wmo(code);
+      const isCurrent = (currentWeatherDay === 0 && hour === nowH);
 
-  h.time.forEach((t, idx) => {
-    if (!t.startsWith(targetDateStr)) return;
-    const hour = parseInt(t.slice(11, 13));
-    const temp = Math.round(h.temperature_2m[idx]);
-    const code = h.weathercode[idx];
-    const precip = h.precipitation_probability[idx];
-    const w = wmo(code);
-    const isCurrent = currentWeatherDay === 0 && hour === currentHour;
+      items.push(`
+        <div class="hero-forecast-item ${isCurrent ? 'now' : ''}">
+          <span style="font-size:11px; font-weight:700;">${String(hour).padStart(2, '0')}:00</span>
+          <span class="fc-emoji" style="font-size:20px;">${w.e}</span>
+          <span class="fc-temp" style="font-size:14px; font-weight:900;">${temp > 0 ? '+' : ''}${temp}°</span>
+          ${precip > 10 ? `<span style="font-size:10px; color:#60a5fa; font-weight:700;">💧${precip}%</span>` : '<span style="font-size:10px; opacity:0;">-</span>'}
+        </div>
+      `);
+    });
 
-    items.push(`
-      <div class="hero-forecast-item ${isCurrent ? 'now' : ''}">
-        <span style="font-size:11px;">${String(hour).padStart(2, '0')}:00</span>
-        <span class="fc-emoji">${w.e}</span>
-        <span class="fc-temp">${temp > 0 ? '+' : ''}${temp}°</span>
-        ${precip > 10 ? `<span style="font-size:10px; color:#60a5fa;">💧${precip}%</span>` : '<span style="font-size:10px; opacity:0;">-</span>'}
-      </div>
-    `);
-  });
+    scrollEl.innerHTML = items.length ? items.join('') : '<div class="hero-forecast-item" style="min-width:100px;"><span style="color:var(--text-dim); font-size:11px;">Нет данных</span></div>';
 
-  scrollEl.innerHTML = items.length ? items.join('') : '<div class="hero-forecast-item" style="min-width:100px;"><span style="color:var(--text-dim); font-size:11px;">Нет данных</span></div>';
-
-  // Auto-scroll to current hour
-  if (currentWeatherDay === 0) {
-    const nowItem = scrollEl.querySelector('.now');
-    if (nowItem) setTimeout(() => nowItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }), 100);
+    // Auto-scroll to current hour when today is selected
+    if (currentWeatherDay === 0) {
+      setTimeout(() => {
+        const nowItem = scrollEl.querySelector('.now');
+        if (nowItem) nowItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }, 150);
+    }
   }
 }
 
@@ -1697,6 +1821,7 @@ document.addEventListener('click', function(e) {
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    closeWeatherModal();
     closeRadioModal();
     closeSupportModal();
     closePanels();
