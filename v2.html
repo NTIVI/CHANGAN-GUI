@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Changan UI v2 — Preview</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* ══════════════════════════════════════════
+   CSS VARIABLES — DARK / LIGHT THEMES
+══════════════════════════════════════════ */
+:root {
+  --bg:           #0a0a12;
+  --bg2:          #11111c;
+  --bg3:          #181826;
+  --bg4:          #1f1f30;
+  --glass:        rgba(255,255,255,0.04);
+  --glass-h:      rgba(255,255,255,0.09);
+  --border:       rgba(255,255,255,0.08);
+  --border-h:     rgba(255,255,255,0.16);
+  --text:         #eeeef6;
+  --text-dim:     #7777a8;
+  --text-muted:   #444466;
+  --accent:       #ff6b35;
+  --accent2:      #ff9f43;
+  --accent-glow:  rgba(255,107,53,0.25);
+  --blue:         #4cc9f0;
+  --green:        #4ade80;
+  --red:          #f87171;
+  --header-h:     60px;
+  --bar-h:        48px;
+  --nav-h:        68px;
+  --radius:       16px;
+}
+[data-theme="light"] {
+  --bg:           #eceff8;
+  --bg2:          #e2e6f4;
+  --bg3:          #d6dcee;
+  --bg4:          #cad0e4;
+  --glass:        rgba(0,0,0,0.04);
+  --glass-h:      rgba(0,0,0,0.08);
+  --border:       rgba(0,0,0,0.09);
+  --border-h:     rgba(0,0,0,0.18);
+  --text:         #18182c;
+  --text-dim:     #555578;
+  --text-muted:   #9999bb;
+  --accent:       #ff6b35;
+  --accent2:      #ff9f43;
+  --accent-glow:  rgba(255,107,53,0.15);
+  --blue:         #0284c7;
+}
+
+/* ══════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100vh;overflow:hidden;}
+body{background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;
+  transition:background .45s,color .45s;}
+.hidden{display:none!important;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+
+/* ══════════════════════════════════════════
+   ACTIVATION GATE
+══════════════════════════════════════════ */
+#gate{
+  position:fixed;inset:0;z-index:999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  transition:opacity .4s,transform .4s;
+}
+.gate-logo{
+  width:76px;height:76px;border-radius:22px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-size:36px;
+  box-shadow:0 0 48px var(--accent-glow),0 16px 40px rgba(0,0,0,.4);
+}
+.gate-brand{text-align:center;}
+.gate-brand h1{font-size:26px;font-weight:800;letter-spacing:-1px;}
+.gate-brand p{font-size:13px;color:var(--text-dim);margin-top:4px;}
+.gate-badge{
+  background:var(--accent);color:#fff;
+  border-radius:99px;padding:2px 10px;
+  font-size:11px;font-weight:700;letter-spacing:.5px;
+  display:inline-block;margin-top:6px;
+}
+.gate-form{display:flex;gap:10px;width:min(320px,90vw);}
+.gate-input{
+  flex:1;background:var(--bg3);border:1.5px solid var(--border);
+  border-radius:14px;padding:13px 16px;color:var(--text);
+  font-size:16px;font-family:'SF Mono',monospace;letter-spacing:3px;
+  text-transform:uppercase;text-align:center;outline:none;
+  transition:border-color .2s;
+}
+.gate-input:focus{border-color:var(--accent);}
+.gate-go{
+  background:var(--accent);color:#fff;border-radius:14px;
+  padding:13px 20px;font-size:16px;font-weight:700;
+  transition:opacity .2s,transform .1s;box-shadow:0 4px 16px var(--accent-glow);
+}
+.gate-go:active{opacity:.8;transform:scale(.96);}
+.gate-err{font-size:13px;color:var(--red);min-height:18px;text-align:center;}
+
+/* ══════════════════════════════════════════
+   OVERLAY
+══════════════════════════════════════════ */
+#overlay{
+  position:fixed;inset:0;z-index:90;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+  display:none;
+}
+#overlay.show{display:block;}
+
+/* ══════════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════════ */
+#app{
+  display:none;flex-direction:column;
+  height:100vh;position:relative;
+}
+#app.visible{display:flex;}
+
+/* ══════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════ */
+header{
+  height:var(--header-h);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  position:relative;z-index:10;
+}
+.hdr-left{display:flex;flex-direction:column;gap:1px;}
+#v2-clock{
+  font-size:28px;font-weight:800;letter-spacing:-1.5px;
+  line-height:1;font-variant-numeric:tabular-nums;
+}
+#v2-date{font-size:11px;color:var(--text-dim);margin-top:1px;}
+
+.hdr-right{display:flex;align-items:center;gap:8px;}
+
+.hdr-btn{
+  width:40px;height:40px;border-radius:12px;
+  background:var(--glass);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text);transition:background .2s,border-color .2s,transform .1s;
+}
+.hdr-btn:active{transform:scale(.9);}
+.hdr-btn svg{width:18px;height:18px;stroke:currentColor;}
+.hdr-btn.active{color:var(--blue);border-color:var(--blue);background:rgba(76,201,240,.1);}
+
+.user-badge{
+  display:flex;align-items:center;gap:9px;
+  background:var(--glass);border:1px solid var(--border);
+  border-radius:14px;padding:5px 12px 5px 6px;
+  transition:background .2s;
+}
+.user-badge:hover{background:var(--glass-h);}
+.avatar{
+  width:30px;height:30px;border-radius:9px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#fff;letter-spacing:0;
+}
+.u-name{font-size:13px;font-weight:600;line-height:1.2;}
+.u-car{font-size:11px;color:var(--text-dim);}
+
+/* ══════════════════════════════════════════
+   3D CANVAS AREA
+══════════════════════════════════════════ */
+.scene-wrap{
+  flex:1;position:relative;overflow:hidden;
+}
+#car-canvas{
+  display:block;width:100%;height:100%;
+}
+/* Ambient bottom glow */
+.car-glow{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:60%;height:40%;
+  background:radial-gradient(ellipse at center bottom, var(--accent-glow) 0%, transparent 70%);
+  pointer-events:none;
+  transition:opacity .6s;
+}
+/* Car name label */
+#car-label{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  background:var(--glass);backdrop-filter:blur(12px);
+  border:1px solid var(--border);border-radius:99px;
+  padding:5px 18px;font-size:13px;font-weight:600;color:var(--text-dim);
+  white-space:nowrap;pointer-events:none;
+  transition:opacity .4s;
+}
+
+/* In-scene notification toast */
+#notif-toast{
+  position:absolute;top:14px;left:50%;
+  transform:translateX(-50%) translateY(-120px);
+  background:var(--bg3);border:1px solid var(--accent);
+  border-radius:18px;padding:12px 18px;
+  display:flex;align-items:center;gap:12px;
+  max-width:320px;width:90%;z-index:40;
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1);
+}
+#notif-toast.show{transform:translateX(-50%) translateY(0);}
+.toast-icon{font-size:22px;}
+.toast-text .t-title{font-size:13px;font-weight:700;}
+.toast-text .t-body{font-size:12px;color:var(--text-dim);margin-top:2px;}
+
+/* ══════════════════════════════════════════
+   WEATHER BAR
+══════════════════════════════════════════ */
+.wx-bar{
+  height:var(--bar-h);flex-shrink:0;
+  display:flex;align-items:center;gap:14px;
+  padding:0 18px;
+  background:var(--bg2);border-top:1px solid var(--border);
+}
+.wx-emoji{font-size:22px;}
+.wx-temp{font-size:20px;font-weight:800;letter-spacing:-1px;}
+.wx-sep{width:1px;height:20px;background:var(--border);}
+.wx-info{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text-dim);}
+.wx-city{display:flex;align-items:center;gap:4px;}
+.wx-city svg{width:12px;height:12px;}
+.wx-details{display:flex;gap:10px;margin-left:auto;}
+.wx-tag{font-size:12px;color:var(--text-dim);}
+
+/* ══════════════════════════════════════════
+   BOTTOM NAV
+══════════════════════════════════════════ */
+.bottom-nav{
+  height:var(--nav-h);flex-shrink:0;
+  background:var(--bg2);border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-around;
+  padding:0 8px;position:relative;z-index:10;
+}
+.nb{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 14px;border-radius:14px;
+  color:var(--text-dim);
+  transition:color .2s,background .2s,transform .1s;
+  position:relative;
+}
+.nb:active{transform:scale(.88);}
+.nb.on{color:var(--accent);}
+.nb svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.nb span{font-size:10px;font-weight:600;}
+.nb-badge{
+  position:absolute;top:4px;right:6px;
+  background:var(--accent);color:#fff;
+  border-radius:99px;min-width:16px;height:16px;
+  font-size:10px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 4px;
+}
+
+/* ══════════════════════════════════════════
+   PANELS
+══════════════════════════════════════════ */
+.panel{
+  position:fixed;z-index:100;
+  background:var(--bg2);
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto;
+}
+.p-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;
+}
+.p-title{font-size:18px;font-weight:800;}
+.p-close{
+  width:32px;height:32px;border-radius:9px;
+  background:var(--glass);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;
+  transition:background .2s;
+}
+.p-close:hover{background:var(--glass-h);}
+
+/* Phone panel — slides from LEFT */
+#phone-panel{
+  top:0;left:0;bottom:0;width:min(300px,85vw);
+  border-right:1px solid var(--border);
+  border-radius:0 22px 22px 0;
+  padding:20px;
+  transform:translateX(-100%);
+  display:flex;flex-direction:column;gap:14px;
+}
+#phone-panel.open{transform:translateX(0);}
+
+.dial-display{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:14px;padding:14px 16px;
+  font-size:22px;font-weight:300;font-family:'SF Mono',monospace;
+  letter-spacing:2px;min-height:56px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text);word-break:break-all;
+}
+.dial-display.empty{color:var(--text-muted);font-size:14px;letter-spacing:0;}
+.dial-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.dk{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;padding:13px;
+  text-align:center;font-size:18px;font-weight:600;
+  transition:background .15s,transform .1s;
+}
+.dk:active{background:var(--bg4);transform:scale(.93);}
+.dk.del{font-size:20px;}
+.dk.call-btn{
+  background:var(--green);color:#fff;border-color:transparent;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-size:15px;
+  box-shadow:0 4px 16px rgba(74,222,128,.25);
+}
+.dk.call-btn:active{opacity:.85;}
+.dk.call-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.5;}
+
+/* App bottom sheet — slides from BOTTOM */
+#app-sheet{
+  bottom:0;left:0;right:0;
+  border-radius:24px 24px 0 0;
+  border:1px solid var(--border);border-bottom:none;
+  padding:10px 18px 24px;
+  transform:translateY(100%);
+  transition:transform .4s cubic-bezier(.34,1.2,.64,1);
+  max-height:72vh;
+}
+#app-sheet.open{transform:translateY(0);}
+.sheet-handle{
+  width:40px;height:4px;background:var(--border);
+  border-radius:2px;margin:0 auto 14px;
+}
+.sheet-title{font-size:16px;font-weight:700;margin-bottom:14px;}
+.apps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.app-card{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:10px 6px;border-radius:14px;cursor:pointer;
+  transition:background .18s,transform .1s;
+}
+.app-card:active{background:var(--glass-h);transform:scale(.92);}
+.app-icon-wrap{
+  width:52px;height:52px;border-radius:15px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;
+}
+.app-label{font-size:11px;color:var(--text-dim);text-align:center;line-height:1.3;}
+
+/* Notification panel — slides from RIGHT */
+#notif-panel{
+  top:0;right:0;bottom:0;width:min(360px,92vw);
+  border-left:1px solid var(--border);
+  border-radius:22px 0 0 22px;
+  padding:20px;
+  transform:translateX(100%);
+  display:flex;flex-direction:column;gap:12px;
+}
+#notif-panel.open{transform:translateX(0);}
+.notif-empty{
+  text-align:center;color:var(--text-dim);
+  font-size:14px;padding:50px 0;
+}
+.notif-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:14px;padding:12px 14px;
+}
+.nc-title{font-size:13px;font-weight:700;}
+.nc-body{font-size:12px;color:var(--text-dim);margin-top:4px;}
+.nc-time{font-size:11px;color:var(--text-muted);margin-top:6px;}
+
+/* Settings panel — slides from RIGHT */
+#settings-panel{
+  top:0;right:0;bottom:0;width:min(360px,92vw);
+  border-left:1px solid var(--border);
+  border-radius:22px 0 0 22px;
+  padding:20px;
+  transform:translateX(100%);
+  display:flex;flex-direction:column;gap:14px;
+}
+#settings-panel.open{transform:translateX(0);}
+.s-section{display:flex;flex-direction:column;gap:8px;}
+.s-label{font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;}
+.s-row{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:13px;padding:13px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:14px;
+}
+.s-row-sub{font-size:12px;color:var(--text-dim);margin-top:2px;}
+
+/* Toggle switch */
+.tog{
+  width:46px;height:26px;background:var(--bg4);border-radius:13px;
+  position:relative;cursor:pointer;transition:background .22s;flex-shrink:0;
+}
+.tog.on{background:var(--accent);}
+.tog::after{
+  content:'';position:absolute;
+  width:22px;height:22px;background:#fff;border-radius:11px;
+  top:2px;left:2px;transition:transform .22s;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.tog.on::after{transform:translateX(20px);}
+
+/* Quick-apps checklist */
+.qa-item{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;padding:10px 14px;
+  display:flex;align-items:center;gap:10px;
+  font-size:14px;
+}
+.qa-icon{font-size:20px;}
+.qa-name{flex:1;}
+.qa-check{
+  width:22px;height:22px;border-radius:6px;
+  border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,border-color .15s;cursor:pointer;
+}
+.qa-check.on{background:var(--accent);border-color:var(--accent);}
+.qa-check.on::after{content:'✓';color:#fff;font-size:13px;font-weight:800;}
+
+/* Theme transition */
+.theme-t,.theme-t *{
+  transition:background .45s ease,color .45s ease,
+    border-color .45s ease,box-shadow .45s ease!important;
+}
+
+/* ══════════════════════════════════════════
+   SCROLLBAR
+══════════════════════════════════════════ */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- ══════ GATE ══════ -->
+<div id="gate">
+  <div class="gate-logo">🚗</div>
+  <div class="gate-brand">
+    <h1>Changan UI</h1>
+    <p>Новый интерфейс — тестовая версия</p>
+    <span class="gate-badge">v2 PREVIEW</span>
+  </div>
+  <div class="gate-form">
+    <input class="gate-input" id="gate-code" type="text"
+      placeholder="КОД" maxlength="8"
+      autocomplete="off" autocapitalize="characters" spellcheck="false"/>
+    <button class="gate-go" onclick="gateSubmit()">→</button>
+  </div>
+  <div class="gate-err" id="gate-err"></div>
+</div>
+
+<!-- ══════ OVERLAY ══════ -->
+<div id="overlay" onclick="closeAll()"></div>
+
+<!-- ══════ MAIN APP ══════ -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="hdr-left">
+      <div id="v2-clock">00:00</div>
+      <div id="v2-date">Загрузка...</div>
+    </div>
+    <div class="hdr-right">
+      <!-- Phone -->
+      <button class="hdr-btn" onclick="openPanel('phone-panel')" title="Позвонить">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .17h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
+      </button>
+      <!-- Theme -->
+      <button class="hdr-btn" id="theme-btn" onclick="toggleTheme()" title="Сменить тему">
+        <svg id="ico-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="ico-moon" class="hidden" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+      <!-- User badge -->
+      <div class="user-badge">
+        <div class="avatar" id="v2-avatar">?</div>
+        <div>
+          <div class="u-name" id="v2-uname">Гость</div>
+          <div class="u-car"  id="v2-ucar">—</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3D CAR SCENE -->
+  <div class="scene-wrap">
+    <canvas id="car-canvas"></canvas>
+    <div class="car-glow"></div>
+    <div id="car-label">Changan</div>
+    <!-- Notification toast (inside scene) -->
+    <div id="notif-toast">
+      <div class="toast-icon">🔔</div>
+      <div class="toast-text">
+        <div class="t-title" id="t-title">Уведомление</div>
+        <div class="t-body"  id="t-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEATHER BAR -->
+  <div class="wx-bar">
+    <span class="wx-emoji" id="wx-emoji">🌤️</span>
+    <span class="wx-temp"  id="wx-temp">--°</span>
+    <div class="wx-sep"></div>
+    <div class="wx-info">
+      <span class="wx-city">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        Ереван
+      </span>
+      <span id="wx-desc">Загрузка...</span>
+    </div>
+    <div class="wx-details">
+      <span class="wx-tag" id="wx-wind">💨 --</span>
+      <span class="wx-tag" id="wx-hum">💧 --%</span>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <!-- Apps -->
+    <button class="nb" onclick="openSheet()" title="Приложения">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Приложения</span>
+    </button>
+    <!-- Bluetooth -->
+    <button class="nb" id="bt-btn" onclick="toggleBT()" title="Bluetooth">
+      <svg viewBox="0 0 24 24"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
+      <span>Bluetooth</span>
+    </button>
+    <!-- Refresh -->
+    <button class="nb" onclick="location.reload()" title="Обновить">
+      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      <span>Обновить</span>
+    </button>
+    <!-- Notifications -->
+    <button class="nb" id="notif-btn" onclick="openPanel('notif-panel')" title="Уведомления">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span>Уведомления</span>
+      <div class="nb-badge hidden" id="notif-badge">0</div>
+    </button>
+    <!-- Settings -->
+    <button class="nb" onclick="openPanel('settings-panel')" title="Настройки">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span>Настройки</span>
+    </button>
+  </nav>
+
+</div><!-- /#app -->
+
+<!-- ══════ PHONE PANEL ══════ -->
+<div id="phone-panel" class="panel">
+  <div class="p-head">
+    <span class="p-title">📞 Позвонить</span>
+    <div class="p-close" onclick="closePanel('phone-panel')">✕</div>
+  </div>
+  <div class="dial-display empty" id="dial-display">введите номер</div>
+  <div class="dial-grid">
+    <div class="dk" onclick="dk('1')">1</div>
+    <div class="dk" onclick="dk('2')">2</div>
+    <div class="dk" onclick="dk('3')">3</div>
+    <div class="dk" onclick="dk('4')">4</div>
+    <div class="dk" onclick="dk('5')">5</div>
+    <div class="dk" onclick="dk('6')">6</div>
+    <div class="dk" onclick="dk('7')">7</div>
+    <div class="dk" onclick="dk('8')">8</div>
+    <div class="dk" onclick="dk('9')">9</div>
+    <div class="dk" onclick="dk('+')">+</div>
+    <div class="dk" onclick="dk('0')">0</div>
+    <div class="dk del" onclick="dkDel()">⌫</div>
+  </div>
+  <div class="dk call-btn" onclick="makeCall()">
+    <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .17h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
+    Позвонить
+  </div>
+</div>
+
+<!-- ══════ APP SHEET ══════ -->
+<div id="app-sheet" class="panel">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Приложения</div>
+  <div class="apps-grid" id="apps-grid"></div>
+</div>
+
+<!-- ══════ NOTIFICATION PANEL ══════ -->
+<div id="notif-panel" class="panel">
+  <div class="p-head">
+    <span class="p-title">🔔 Уведомления</span>
+    <div class="p-close" onclick="closePanel('notif-panel')">✕</div>
+  </div>
+  <div id="notif-list"><div class="notif-empty">Уведомлений пока нет</div></div>
+</div>
+
+<!-- ══════ SETTINGS PANEL ══════ -->
+<div id="settings-panel" class="panel">
+  <div class="p-head">
+    <span class="p-title">⚙️ Настройки</span>
+    <div class="p-close" onclick="closePanel('settings-panel')">✕</div>
+  </div>
+
+  <div class="s-section">
+    <div class="s-label">Внешний вид</div>
+    <div class="s-row">
+      <div>
+        <div>Тёмная тема</div>
+        <div class="s-row-sub">Переключить цветовую схему</div>
+      </div>
+      <div class="tog" id="theme-tog" onclick="toggleTheme()"></div>
+    </div>
+  </div>
+
+  <div class="s-section">
+    <div class="s-label">Быстрый доступ — нижнее меню</div>
+    <div id="qa-list"></div>
+  </div>
+
+  <div class="s-section">
+    <div class="s-label">О версии</div>
+    <div class="s-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+      <div style="font-weight:700;">Changan UI v2</div>
+      <div class="s-row-sub">Тестовая страница нового дизайна</div>
+      <div class="s-row-sub" style="color:var(--accent);">Не показывается пользователям</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+'use strict';
+// ────────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────────
+let V2 = {
+  user:    null,
+  code:    localStorage.getItem('v2_code') || '',
+  theme:   localStorage.getItem('v2_theme') || 'dark',
+  bt:      false,
+  dialNum: '',
+  notifs:  [],
+  unread:  0,
+  lastId:  0,
+  scene: null, camera: null, renderer: null,
+  carGroup: null, clock: null, raf: null,
+  notifTimer: null, syncTimer: null,
+};
+
+// ────────────────────────────────────────────
+// APPS REGISTRY
+// ────────────────────────────────────────────
+const APPS = [
+  { id:'maps',    name:'Я.Карты',  icon:'🗺️',  color:'#ff3d00', url:'https://yandex.ru/maps/' },
+  { id:'music',   name:'Я.Музыка', icon:'🎵',  color:'#ffcc00', url:'https://music.yandex.ru/' },
+  { id:'yandex',  name:'Яндекс',   icon:'🔍',  color:'#fc3f1d', url:'https://yandex.ru/' },
+  { id:'youtube', name:'YouTube',  icon:'▶️',  color:'#ff0000', url:'https://youtube.com/' },
+  { id:'tg',      name:'Telegram', icon:'✈️',  color:'#2ca5e0', url:'https://web.telegram.org/' },
+  { id:'radio',   name:'Радио',    icon:'📻',  color:'#8b5cf6', url:'https://radiorecord.ru/' },
+  { id:'weather', name:'Погода',   icon:'🌤️', color:'#38bdf8', url:'https://yandex.ru/pogoda/yerevan' },
+  { id:'browser', name:'Браузер',  icon:'🌐',  color:'#22c55e', url:'https://google.com/' },
+];
+
+// Quick-access user choices (persisted)
+let quickApps = JSON.parse(localStorage.getItem('v2_qa') || '["maps","music","yandex"]');
+
+// ────────────────────────────────────────────
+// BOOT
+// ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  applyTheme(V2.theme, false);
+  tickClock();
+  setInterval(tickClock, 1000);
+  buildAppsGrid();
+  buildQAList();
+  loadWeather();
+  setInterval(loadWeather, 10 * 60 * 1000);
+
+  document.getElementById('gate-code').addEventListener('keydown', e => {
+    if (e.key === 'Enter') gateSubmit();
+  });
+
+  // Try auto-login
+  if (V2.code) autoLogin();
+});
+
+// ────────────────────────────────────────────
+// THEME
+// ────────────────────────────────────────────
+function applyTheme(t, animate = true) {
+  V2.theme = t;
+  if (animate) {
+    document.documentElement.classList.add('theme-t');
+    setTimeout(() => document.documentElement.classList.remove('theme-t'), 460);
+  }
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('v2_theme', t);
+
+  const isDark = t === 'dark';
+  document.getElementById('ico-sun').classList.toggle('hidden', !isDark);
+  document.getElementById('ico-moon').classList.toggle('hidden', isDark);
+  const tog = document.getElementById('theme-tog');
+  if (tog) tog.classList.toggle('on', isDark);
+
+  if (V2.renderer && V2.scene) {
+    const col = isDark ? 0x0a0a12 : 0xeceff8;
+    V2.scene.background = new THREE.Color(col);
+    V2.scene.fog = new THREE.Fog(col, 14, 28);
+  }
+}
+
+function toggleTheme() {
+  applyTheme(V2.theme === 'dark' ? 'light' : 'dark');
+}
+
+// ────────────────────────────────────────────
+// CLOCK
+// ────────────────────────────────────────────
+function tickClock() {
+  const tz = 'Asia/Yerevan';
+  const now = new Date();
+  const t = now.toLocaleTimeString('ru-RU', { timeZone: tz, hour: '2-digit', minute: '2-digit' });
+  const d = now.toLocaleDateString('ru-RU', { timeZone: tz, weekday: 'long', day: 'numeric', month: 'long' });
+  const cl = document.getElementById('v2-clock');
+  const dl = document.getElementById('v2-date');
+  if (cl) cl.textContent = t;
+  if (dl) dl.textContent = d[0].toUpperCase() + d.slice(1);
+}
+
+// ────────────────────────────────────────────
+// GATE / AUTH
+// ────────────────────────────────────────────
+async function gateSubmit() {
+  const code = (document.getElementById('gate-code').value || '').trim().toUpperCase();
+  const err = document.getElementById('gate-err');
+  if (!code) { err.textContent = 'Введите код доступа'; return; }
+  err.textContent = 'Проверяем...';
+  try {
+    const r = await fetch('/api/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    const d = await r.json();
+    if (d.active && d.user) {
+      V2.code = code;
+      V2.user = d.user;
+      localStorage.setItem('v2_code', code);
+      localStorage.setItem('v2_user', JSON.stringify(d.user));
+      enterApp();
+    } else if (!d.active) {
+      err.textContent = '❌ Аккаунт не активирован';
+    } else {
+      err.textContent = '❌ Код не найден';
+    }
+  } catch(e) {
+    err.textContent = '⚠️ Ошибка соединения';
+  }
+}
+
+async function autoLogin() {
+  try {
+    const r = await fetch('/api/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: V2.code })
+    });
+    const d = await r.json();
+    if (d.active && d.user) {
+      V2.user = d.user;
+      localStorage.setItem('v2_user', JSON.stringify(d.user));
+      enterApp();
+    }
+  } catch(e) {}
+}
+
+function enterApp() {
+  // Fade gate out
+  const gate = document.getElementById('gate');
+  gate.style.transition = 'opacity .4s, transform .4s';
+  gate.style.opacity = '0';
+  gate.style.transform = 'scale(.96)';
+  setTimeout(() => { gate.style.display = 'none'; }, 400);
+
+  // Show app
+  const app = document.getElementById('app');
+  app.classList.add('visible');
+  app.style.opacity = '0';
+  setTimeout(() => {
+    app.style.transition = 'opacity .5s';
+    app.style.opacity = '1';
+  }, 100);
+
+  setupProfile(V2.user);
+
+  // Init 3D after DOM is painted
+  requestAnimationFrame(() => {
+    setTimeout(initThreeJS, 100);
+  });
+
+  startNotifPoll();
+  startUserSync();
+}
+
+// ────────────────────────────────────────────
+// PROFILE
+// ────────────────────────────────────────────
+function setupProfile(user) {
+  if (!user) return;
+  const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || 'Пользователь';
+  const car  = user.carModel || '—';
+  const ini  = ((user.firstName||'?')[0] + (user.lastName||'')[0]).toUpperCase();
+
+  const el = id => document.getElementById(id);
+  if (el('v2-uname'))  el('v2-uname').textContent  = name;
+  if (el('v2-ucar'))   el('v2-ucar').textContent   = car;
+  if (el('v2-avatar')) el('v2-avatar').textContent = ini || '?';
+  if (el('car-label')) el('car-label').textContent = car !== '—' ? car : 'Changan';
+
+  if (V2.carGroup) updateCarColor(car);
+}
+
+// ────────────────────────────────────────────
+// THREE.JS  — 3D Car
+// ────────────────────────────────────────────
+function initThreeJS() {
+  const canvas = document.getElementById('car-canvas');
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+
+  // Scene
+  V2.scene = new THREE.Scene();
+  const bgCol = V2.theme === 'dark' ? 0x0a0a12 : 0xeceff8;
+  V2.scene.background = new THREE.Color(bgCol);
+  V2.scene.fog = new THREE.Fog(bgCol, 14, 28);
+
+  // Camera
+  V2.camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 100);
+  V2.camera.position.set(7, 3.2, 7);
+  V2.camera.lookAt(0, 0.3, 0);
+
+  // Renderer
+  V2.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  V2.renderer.setSize(W, H);
+  V2.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  V2.renderer.shadowMap.enabled = true;
+  V2.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  V2.renderer.outputEncoding = THREE.sRGBEncoding;
+  V2.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  V2.renderer.toneMappingExposure = 1.15;
+
+  // Lights
+  const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+  V2.scene.add(ambient);
+
+  const key = new THREE.DirectionalLight(0xffffff, 1.4);
+  key.position.set(6, 10, 6);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.near = 0.5;
+  key.shadow.camera.far  = 40;
+  key.shadow.camera.left = key.shadow.camera.bottom = -8;
+  key.shadow.camera.right = key.shadow.camera.top  =  8;
+  V2.scene.add(key);
+
+  const fill = new THREE.DirectionalLight(0x8ab4ff, 0.45);
+  fill.position.set(-5, 4, -4);
+  V2.scene.add(fill);
+
+  const rim = new THREE.DirectionalLight(0xff7b4d, 0.35);
+  rim.position.set(0, -1, -6);
+  V2.scene.add(rim);
+
+  // Accent point light (brand orange glow under car)
+  const pOrange = new THREE.PointLight(0xff6b35, 1.2, 5);
+  pOrange.position.set(0, -0.8, 0);
+  V2.scene.add(pOrange);
+
+  // Ground
+  const gnd = new THREE.Mesh(
+    new THREE.PlaneGeometry(24, 24),
+    new THREE.MeshStandardMaterial({
+      color: V2.theme === 'dark' ? 0x080810 : 0xd8dce8,
+      metalness: 0.2, roughness: 0.85
+    })
+  );
+  gnd.rotation.x = -Math.PI / 2;
+  gnd.position.y = -1.08;
+  gnd.receiveShadow = true;
+  V2.scene.add(gnd);
+
+  // Grid lines on ground
+  const grid = new THREE.GridHelper(20, 20,
+    V2.theme === 'dark' ? 0x1a1a2e : 0xb0b4cc,
+    V2.theme === 'dark' ? 0x111120 : 0xc0c4d8
+  );
+  grid.position.y = -1.07;
+  V2.scene.add(grid);
+
+  // Build car
+  V2.carGroup = buildCar(V2.user?.carModel || 'default');
+  V2.scene.add(V2.carGroup);
+
+  // Clock for animation
+  V2.clock = new THREE.Clock();
+
+  // Resize
+  window.addEventListener('resize', () => {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    V2.camera.aspect = w / h;
+    V2.camera.updateProjectionMatrix();
+    V2.renderer.setSize(w, h);
+  });
+
+  // Animate
+  (function loop() {
+    V2.raf = requestAnimationFrame(loop);
+    const t = V2.clock.getElapsedTime();
+    if (V2.carGroup) {
+      V2.carGroup.rotation.y = t * 0.28;
+      V2.carGroup.position.y = Math.sin(t * 1.1) * 0.04;
+    }
+    V2.renderer.render(V2.scene, V2.camera);
+  })();
+}
+
+// Car color map by model keyword
+function carColor(model) {
+  const m = (model || '').toLowerCase();
+  if (m.includes('cs55'))  return 0x1a3d6e;  // Deep Blue
+  if (m.includes('cs35'))  return 0xc5c5cc;  // Silver
+  if (m.includes('cs75'))  return 0x111111;  // Onyx Black
+  if (m.includes('cs85'))  return 0x8b6914;  // Champagne Gold
+  if (m.includes('uni-t') || m.includes('unit')) return 0xcc2222; // Racing Red
+  if (m.includes('uni-v') || m.includes('univ')) return 0x1a5c30; // Forest Green
+  if (m.includes('uni-k') || m.includes('unik')) return 0x3a2066; // Cosmic Purple
+  return 0xeeeee8; // Pearl White (default)
+}
+
+function updateCarColor(model) {
+  if (!V2.carGroup) return;
+  const col = carColor(model);
+  V2.carGroup.traverse(c => {
+    if (c.isMesh && c.userData.body) c.material.color.setHex(col);
+  });
+}
+
+function buildCar(model) {
+  const grp = new THREE.Group();
+  const col = carColor(model);
+
+  // Materials
+  const bodyM = new THREE.MeshPhysicalMaterial({
+    color: col, metalness: 0.88, roughness: 0.12,
+    clearcoat: 1, clearcoatRoughness: 0.04,
+  });
+  const glassM = new THREE.MeshPhysicalMaterial({
+    color: 0x7799cc, metalness: 0, roughness: 0,
+    transmission: 0.8, opacity: 0.35, transparent: true,
+  });
+  const tireM = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+  const rimM  = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.95, roughness: 0.08 });
+  const darkM = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.6 });
+  const hlM   = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.2 });
+  const tlM   = new THREE.MeshStandardMaterial({ color: 0xff2222, emissive: 0xff1111, emissiveIntensity: 0.7 });
+  const drlM  = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 2 });
+  const dhM   = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.9, roughness: 0.1 });
+
+  function body(geo, mat, x, y, z, rx=0,ry=0,rz=0, isBody=false) {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    m.castShadow = true;
+    if (isBody) m.userData.body = true;
+    grp.add(m);
+    return m;
+  }
+
+  // ── Chassis (lower body) ──
+  body(new THREE.BoxGeometry(4.3, 0.72, 1.94), bodyM, 0, -0.08, 0, 0,0,0, true);
+  // ── Cabin ──
+  body(new THREE.BoxGeometry(2.9, 0.82, 1.78), bodyM, -0.1, 0.77, 0, 0,0,0, true);
+  // ── Hood ramp ──
+  body(new THREE.BoxGeometry(0.7, 0.5, 1.78), bodyM, 1.25, 0.51, 0, 0,0,0, true);
+  // ── Trunk ramp ──
+  body(new THREE.BoxGeometry(0.55, 0.45, 1.78), bodyM, -1.6, 0.51, 0, 0,0,0, true);
+  // ── Roof ──
+  body(new THREE.BoxGeometry(2.65, 0.1, 1.62), bodyM, -0.1, 1.18, 0, 0,0,0, true);
+  // ── Roof rails ──
+  body(new THREE.BoxGeometry(2.3, 0.05, 0.05), darkM,  -0.1, 1.24,  0.78);
+  body(new THREE.BoxGeometry(2.3, 0.05, 0.05), darkM,  -0.1, 1.24, -0.78);
+  // ── Front bumper ──
+  body(new THREE.BoxGeometry(0.14, 0.36, 1.94), darkM, 2.22, -0.24, 0);
+  // ── Rear bumper ──
+  body(new THREE.BoxGeometry(0.14, 0.36, 1.94), darkM,-2.22, -0.24, 0);
+  // ── Grille ──
+  body(new THREE.BoxGeometry(0.06, 0.28, 1.28), darkM, 2.19, -0.04, 0);
+  // ── Headlights L/R ──
+  body(new THREE.BoxGeometry(0.1, 0.13, 0.38), hlM, 2.2, 0.13,  0.68);
+  body(new THREE.BoxGeometry(0.1, 0.13, 0.38), hlM, 2.2, 0.13, -0.68);
+  // ── DRL strip ──
+  body(new THREE.BoxGeometry(0.05, 0.04, 0.88), drlM, 2.18, 0.22, 0);
+  // ── Taillights L/R ──
+  body(new THREE.BoxGeometry(0.1, 0.13, 0.42), tlM,-2.2, 0.13,  0.68);
+  body(new THREE.BoxGeometry(0.1, 0.13, 0.42), tlM,-2.2, 0.13, -0.68);
+  // ── Tail LED strip ──
+  body(new THREE.BoxGeometry(0.05, 0.04, 1.0),
+    new THREE.MeshStandardMaterial({ color:0xff2222, emissive:0xff1111, emissiveIntensity:0.5 }),
+    -2.18, 0.13, 0);
+  // ── Skid plate front ──
+  body(new THREE.BoxGeometry(0.08, 0.1, 1.4),
+    new THREE.MeshStandardMaterial({ color:0x777777, metalness:.5 }),
+    2.2, -0.4, 0);
+  // ── Door handles ──
+  body(new THREE.BoxGeometry(0.28, 0.06, 0.06), dhM,  0.55, 0.05,  0.98);
+  body(new THREE.BoxGeometry(0.28, 0.06, 0.06), dhM, -0.55, 0.05,  0.98);
+  body(new THREE.BoxGeometry(0.28, 0.06, 0.06), dhM,  0.55, 0.05, -0.98);
+  body(new THREE.BoxGeometry(0.28, 0.06, 0.06), dhM, -0.55, 0.05, -0.98);
+  // ── Windows (side) ──
+  body(new THREE.PlaneGeometry(1.9, 0.54), glassM, -0.1, 0.93,  0.89);
+  body(new THREE.PlaneGeometry(1.9, 0.54), glassM, -0.1, 0.93, -0.89, 0, Math.PI, 0);
+  // ── Windshield ──
+  body(new THREE.PlaneGeometry(0.68, 0.62), glassM, 0.86, 0.87, 0, 0, Math.PI/2, Math.PI/9);
+  // ── Antenna ──
+  body(new THREE.CylinderGeometry(.012,.012,.42,8), darkM, -0.85, 1.23, 0.32);
+
+  // ── WHEELS ──
+  function addWheel(wx, wz) {
+    const wg = new THREE.Group();
+    wg.position.set(wx, -0.53, wz);
+
+    // Tyre
+    const tyre = new THREE.Mesh(new THREE.CylinderGeometry(.52,.52,.36,36), tireM);
+    tyre.rotation.x = Math.PI/2; tyre.castShadow = true;
+    wg.add(tyre);
+    // Inner disc
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.37,16), rimM);
+    disc.rotation.x = Math.PI/2;
+    wg.add(disc);
+    // 5 spokes
+    for (let i = 0; i < 5; i++) {
+      const sp = new THREE.Mesh(new THREE.BoxGeometry(.055,.38,.38), rimM);
+      sp.rotation.z = (i/5)*Math.PI;
+      wg.add(sp);
+    }
+    // Hub
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.38,16), rimM);
+    hub.rotation.x = Math.PI/2;
+    wg.add(hub);
+    // Arch cover
+    const arch = new THREE.Mesh(
+      new THREE.CylinderGeometry(.58,.58,.41,32,1,true,Math.PI,Math.PI),
+      new THREE.MeshPhysicalMaterial({ color:col, metalness:.88, roughness:.12, clearcoat:1, clearcoatRoughness:.04 })
+    );
+    arch.userData.body = true;
+    arch.rotation.x = Math.PI/2;
+    wg.add(arch);
+
+    grp.add(wg);
+    return wg;
+  }
+
+  addWheel( 1.38,  0.98);
+  addWheel( 1.38, -0.98);
+  addWheel(-1.38,  0.98);
+  addWheel(-1.38, -0.98);
+
+  grp.position.y = 0.06;
+  return grp;
+}
+
+// ────────────────────────────────────────────
+// PANELS
+// ────────────────────────────────────────────
+const PANELS = ['phone-panel','notif-panel','settings-panel'];
+
+function openPanel(id) {
+  closeAll();
+  document.getElementById(id)?.classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closePanel(id) {
+  document.getElementById(id)?.classList.remove('open');
+  if (!PANELS.some(p => document.getElementById(p)?.classList.contains('open'))) {
+    document.getElementById('overlay').classList.remove('show');
+  }
+}
+
+function openSheet() {
+  closeAll();
+  document.getElementById('app-sheet')?.classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeAll() {
+  PANELS.forEach(p => document.getElementById(p)?.classList.remove('open'));
+  document.getElementById('app-sheet')?.classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+// ────────────────────────────────────────────
+// DIALER
+// ────────────────────────────────────────────
+function dk(k) {
+  if (V2.dialNum.length >= 16) return;
+  V2.dialNum += k;
+  refreshDial();
+}
+function dkDel() {
+  V2.dialNum = V2.dialNum.slice(0, -1);
+  refreshDial();
+}
+function refreshDial() {
+  const el = document.getElementById('dial-display');
+  if (!el) return;
+  if (V2.dialNum) {
+    el.textContent = V2.dialNum;
+    el.classList.remove('empty');
+  } else {
+    el.textContent = 'введите номер';
+    el.classList.add('empty');
+  }
+}
+function makeCall() {
+  if (!V2.dialNum) return;
+  window.location.href = 'tel:' + V2.dialNum;
+}
+
+// ────────────────────────────────────────────
+// BLUETOOTH
+// ────────────────────────────────────────────
+function toggleBT() {
+  V2.bt = !V2.bt;
+  const btn = document.getElementById('bt-btn');
+  if (btn) btn.classList.toggle('on', V2.bt);
+  showToast('Bluetooth', V2.bt ? 'Включён' : 'Выключен', V2.bt ? '🔵' : '⚫');
+}
+
+// ────────────────────────────────────────────
+// APPS GRID
+// ────────────────────────────────────────────
+function buildAppsGrid() {
+  const grid = document.getElementById('apps-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  APPS.forEach(app => {
+    const d = document.createElement('div');
+    d.className = 'app-card';
+    d.innerHTML = `
+      <div class="app-icon-wrap" style="background:${app.color}22;border:1px solid ${app.color}55;">
+        <span>${app.icon}</span>
+      </div>
+      <div class="app-label">${app.name}</div>`;
+    d.addEventListener('click', () => {
+      closeAll();
+      if (app.url) window.open(app.url, '_blank');
+    });
+    grid.appendChild(d);
+  });
+}
+
+// ────────────────────────────────────────────
+// QUICK ACCESS (settings)
+// ────────────────────────────────────────────
+function buildQAList() {
+  const list = document.getElementById('qa-list');
+  if (!list) return;
+  list.innerHTML = '';
+  APPS.forEach(app => {
+    const isOn = quickApps.includes(app.id);
+    const d = document.createElement('div');
+    d.className = 'qa-item';
+    d.innerHTML = `
+      <span class="qa-icon">${app.icon}</span>
+      <span class="qa-name">${app.name}</span>
+      <div class="qa-check ${isOn ? 'on' : ''}" id="qa-${app.id}"></div>`;
+    d.querySelector('.qa-check').addEventListener('click', () => toggleQA(app.id));
+    list.appendChild(d);
+  });
+}
+
+function toggleQA(id) {
+  const idx = quickApps.indexOf(id);
+  if (idx === -1) quickApps.push(id);
+  else quickApps.splice(idx, 1);
+  localStorage.setItem('v2_qa', JSON.stringify(quickApps));
+  // Update checkbox
+  const el = document.getElementById('qa-' + id);
+  if (el) el.classList.toggle('on', quickApps.includes(id));
+  showToast('Настройки', 'Быстрый доступ обновлён', '⚙️');
+}
+
+// ────────────────────────────────────────────
+// WEATHER
+// ────────────────────────────────────────────
+async function loadWeather() {
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=40.1811&longitude=44.5136' +
+      '&current_weather=true&hourly=relativehumidity_2m,windspeed_10m&timezone=Asia%2FYerevan&forecast_days=1';
+    const r = await fetch(url);
+    const d = await r.json();
+    const cw = d.current_weather;
+    const temp  = Math.round(cw.temperature);
+    const wcode = cw.weathercode;
+    const wind  = Math.round(cw.windspeed);
+    const nowH  = new Date().toLocaleString('ru-RU',{timeZone:'Asia/Yerevan',hour:'2-digit',hour12:false});
+    const hIdx  = parseInt(nowH);
+    const hum   = d.hourly?.relativehumidity_2m?.[hIdx] ?? '--';
+
+    setText('wx-emoji', wmoE(wcode));
+    setText('wx-temp',  temp + '°');
+    setText('wx-desc',  wmoD(wcode));
+    setText('wx-wind',  '💨 ' + wind + ' км/ч');
+    setText('wx-hum',   '💧 ' + hum + '%');
+  } catch(e) { console.warn('Weather error', e); }
+}
+
+function wmoE(c) {
+  if (c===0) return '☀️';
+  if (c<=2)  return '⛅';
+  if (c<=3)  return '☁️';
+  if (c<=49) return '🌫️';
+  if (c<=65) return '🌧️';
+  if (c<=77) return '❄️';
+  if (c<=82) return '🌦️';
+  if (c<=86) return '🌨️';
+  return '⛈️';
+}
+function wmoD(c) {
+  if (c===0) return 'Ясно';
+  if (c===1) return 'В основном ясно';
+  if (c===2) return 'Переменная облачность';
+  if (c===3) return 'Облачно';
+  if (c<=49) return 'Туман';
+  if (c<=55) return 'Морось';
+  if (c<=65) return 'Дождь';
+  if (c<=77) return 'Снег';
+  if (c<=82) return 'Ливень';
+  if (c<=86) return 'Снегопад';
+  return 'Гроза';
+}
+
+// ────────────────────────────────────────────
+// NOTIFICATIONS
+// ────────────────────────────────────────────
+function startNotifPoll() {
+  fetchNotifs();
+  V2.notifTimer = setInterval(fetchNotifs, 5000);
+}
+
+async function fetchNotifs() {
+  try {
+    const r = await fetch('/api/notifications?since=' + V2.lastId);
+    const d = await r.json();
+    if (!d.notifications?.length) return;
+    d.notifications.forEach(n => {
+      if (n.id > V2.lastId) { V2.lastId = n.id; pushNotif(n); }
+    });
+  } catch(e) {}
+}
+
+function pushNotif(n) {
+  V2.notifs.unshift(n);
+  V2.unread++;
+  const badge = document.getElementById('notif-badge');
+  if (badge) {
+    badge.textContent = V2.unread > 9 ? '9+' : V2.unread;
+    badge.classList.remove('hidden');
+  }
+  renderNotifList();
+  showToast(n.title || 'Уведомление', n.body || '', '🔔');
+  playSound();
+}
+
+function renderNotifList() {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  if (!V2.notifs.length) {
+    list.innerHTML = '<div class="notif-empty">Уведомлений пока нет</div>';
+    return;
+  }
+  list.innerHTML = V2.notifs.map(n => `
+    <div class="notif-card">
+      <div class="nc-title">${esc(n.title||'Уведомление')}</div>
+      <div class="nc-body">${esc(n.body||'')}</div>
+      <div class="nc-time">${fmtDate(n.created_at)}</div>
+    </div>`).join('');
+}
+
+// Reset badge when opening panel
+document.addEventListener('click', e => {
+  if (e.target.closest('#notif-btn') || e.target.closest('#notif-panel')) {
+    V2.unread = 0;
+    const badge = document.getElementById('notif-badge');
+    if (badge) badge.classList.add('hidden');
+  }
+});
+
+// ────────────────────────────────────────────
+// TOAST
+// ────────────────────────────────────────────
+let toastTimer = null;
+function showToast(title, body, icon='🔔') {
+  setText('t-title', title);
+  setText('t-body', body);
+  const t = document.getElementById('notif-toast');
+  if (!t) return;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4500);
+}
+
+// ────────────────────────────────────────────
+// NOTIFICATION SOUND  (Web Audio API)
+// ────────────────────────────────────────────
+function playSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [[880,0,.15],[1100,.18,.15],[880,.36,.22]].forEach(([freq,start,dur]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0, ctx.currentTime + start);
+      g.gain.linearRampToValueAtTime(0.14, ctx.currentTime + start + .02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      o.start(ctx.currentTime + start);
+      o.stop(ctx.currentTime + start + dur);
+    });
+  } catch(e) {}
+}
+
+// ────────────────────────────────────────────
+// USER SYNC (admin can change data live)
+// ────────────────────────────────────────────
+function startUserSync() {
+  V2.syncTimer = setInterval(async () => {
+    if (!V2.code) return;
+    try {
+      const r = await fetch('/api/status', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ code: V2.code })
+      });
+      const d = await r.json();
+      if (!d.active) { lockOut(); return; }
+      if (d.user) {
+        const prev = V2.user || {};
+        if (
+          d.user.firstName !== prev.firstName ||
+          d.user.lastName  !== prev.lastName  ||
+          d.user.carModel  !== prev.carModel
+        ) {
+          V2.user = d.user;
+          localStorage.setItem('v2_user', JSON.stringify(d.user));
+          setupProfile(d.user);
+        }
+      }
+    } catch(e) {}
+  }, 5000);
+}
+
+function lockOut() {
+  document.getElementById('app').classList.remove('visible');
+  const gate = document.getElementById('gate');
+  gate.style.display = '';
+  gate.style.opacity = '1';
+  gate.style.transform = '';
+  document.getElementById('gate-err').textContent = 'Сессия завершена. Введите код снова.';
+  localStorage.removeItem('v2_code');
+  localStorage.removeItem('v2_user');
+  V2.code = '';
+  V2.user = null;
+  if (V2.raf) cancelAnimationFrame(V2.raf);
+  clearInterval(V2.notifTimer);
+  clearInterval(V2.syncTimer);
+}
+
+// ────────────────────────────────────────────
+// UTILS
+// ────────────────────────────────────────────
+function setText(id, v) {
+  const e = document.getElementById(id);
+  if (e) e.textContent = v;
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleString('ru-RU',{
+      timeZone:'Asia/Yerevan',
+      hour:'2-digit', minute:'2-digit',
+      day:'numeric', month:'short'
+    });
+  } catch(e){ return iso; }
+}
+</script>
+</body>
+</html>
