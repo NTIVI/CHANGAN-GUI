@@ -62,47 +62,6 @@ body{background:var(--bg);color:var(--text);
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
 
 /* ══════════════════════════════════════════
-   ACTIVATION GATE
-══════════════════════════════════════════ */
-#gate{
-  position:fixed;inset:0;z-index:999;
-  background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
-  transition:opacity .4s,transform .4s;
-}
-.gate-logo{
-  width:76px;height:76px;border-radius:22px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  display:flex;align-items:center;justify-content:center;font-size:36px;
-  box-shadow:0 0 48px var(--accent-glow),0 16px 40px rgba(0,0,0,.4);
-}
-.gate-brand{text-align:center;}
-.gate-brand h1{font-size:26px;font-weight:800;letter-spacing:-1px;}
-.gate-brand p{font-size:13px;color:var(--text-dim);margin-top:4px;}
-.gate-badge{
-  background:var(--accent);color:#fff;
-  border-radius:99px;padding:2px 10px;
-  font-size:11px;font-weight:700;letter-spacing:.5px;
-  display:inline-block;margin-top:6px;
-}
-.gate-form{display:flex;gap:10px;width:min(320px,90vw);}
-.gate-input{
-  flex:1;background:var(--bg3);border:1.5px solid var(--border);
-  border-radius:14px;padding:13px 16px;color:var(--text);
-  font-size:16px;font-family:'SF Mono',monospace;letter-spacing:3px;
-  text-transform:uppercase;text-align:center;outline:none;
-  transition:border-color .2s;
-}
-.gate-input:focus{border-color:var(--accent);}
-.gate-go{
-  background:var(--accent);color:#fff;border-radius:14px;
-  padding:13px 20px;font-size:16px;font-weight:700;
-  transition:opacity .2s,transform .1s;box-shadow:0 4px 16px var(--accent-glow);
-}
-.gate-go:active{opacity:.8;transform:scale(.96);}
-.gate-err{font-size:13px;color:var(--red);min-height:18px;text-align:center;}
-
-/* ══════════════════════════════════════════
    OVERLAY
 ══════════════════════════════════════════ */
 #overlay{
@@ -113,152 +72,194 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 #overlay.show{display:block;}
 
 /* ══════════════════════════════════════════
-   MAIN APP
+   MAIN APP LAYOUT (Wireframe match)
 ══════════════════════════════════════════ */
 #app{
-  display:none;flex-direction:column;
-  height:100vh;position:relative;
+  display:none;
+  width:100vw;height:100vh;
+  position:relative;
+  overflow:hidden;
 }
-#app.visible{display:flex;}
+#app.visible{display:block;}
 
-/* ══════════════════════════════════════════
-   HEADER
-══════════════════════════════════════════ */
-header{
-  height:var(--header-h);flex-shrink:0;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 18px;
-  background:var(--bg2);
-  border-bottom:1px solid var(--border);
-  position:relative;z-index:10;
-}
-.hdr-left{display:flex;flex-direction:column;gap:1px;}
-#v2-clock{
-  font-size:28px;font-weight:800;letter-spacing:-1.5px;
-  line-height:1;font-variant-numeric:tabular-nums;
-}
-#v2-date{font-size:11px;color:var(--text-dim);margin-top:1px;}
-
-.hdr-right{display:flex;align-items:center;gap:8px;}
-
-.hdr-btn{
-  width:40px;height:40px;border-radius:12px;
-  background:var(--glass);border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;
-  color:var(--text);transition:background .2s,border-color .2s,transform .1s;
-}
-.hdr-btn:active{transform:scale(.9);}
-.hdr-btn svg{width:18px;height:18px;stroke:currentColor;}
-.hdr-btn.active{color:var(--blue);border-color:var(--blue);background:rgba(76,201,240,.1);}
-
-.user-badge{
-  display:flex;align-items:center;gap:9px;
-  background:var(--glass);border:1px solid var(--border);
-  border-radius:14px;padding:5px 12px 5px 6px;
-  transition:background .2s;
-}
-.user-badge:hover{background:var(--glass-h);}
-.avatar{
-  width:30px;height:30px;border-radius:9px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:800;color:#fff;letter-spacing:0;
-}
-.u-name{font-size:13px;font-weight:600;line-height:1.2;}
-.u-car{font-size:11px;color:var(--text-dim);}
-
-/* ══════════════════════════════════════════
-   3D CANVAS AREA
-══════════════════════════════════════════ */
+/* ── Fullscreen Background 3D Canvas ── */
 .scene-wrap{
-  flex:1;position:relative;overflow:hidden;
+  position:absolute;inset:0;z-index:1;
+  width:100%;height:100%;
 }
 #car-canvas{
   display:block;width:100%;height:100%;
 }
-/* Ambient bottom glow */
 .car-glow{
   position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-  width:60%;height:40%;
+  width:70%;height:45%;
   background:radial-gradient(ellipse at center bottom, var(--accent-glow) 0%, transparent 70%);
   pointer-events:none;
-  transition:opacity .6s;
 }
-/* Car name label */
 #car-label{
-  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  position:absolute;bottom:90px;left:50%;transform:translateX(-50%);
   background:var(--glass);backdrop-filter:blur(12px);
   border:1px solid var(--border);border-radius:99px;
-  padding:5px 18px;font-size:13px;font-weight:600;color:var(--text-dim);
+  padding:6px 22px;font-size:14px;font-weight:700;color:var(--text);
   white-space:nowrap;pointer-events:none;
-  transition:opacity .4s;
+  box-shadow:0 8px 30px rgba(0,0,0,0.3);
 }
 
-/* In-scene notification toast */
-#notif-toast{
-  position:absolute;top:14px;left:50%;
-  transform:translateX(-50%) translateY(-120px);
-  background:var(--bg3);border:1px solid var(--accent);
-  border-radius:18px;padding:12px 18px;
+/* ── TOP-LEFT WIDGET: Clock & Phone ── */
+.top-left-card{
+  position:absolute;top:20px;left:24px;z-index:10;
+  background:var(--bg2);
+  border:1.5px solid var(--border);
+  border-radius:20px;
+  padding:14px 18px;
+  min-width:180px;
+  box-shadow:0 12px 36px rgba(0,0,0,0.35);
+  backdrop-filter:blur(16px);
+  display:flex;flex-direction:column;gap:8px;
+}
+.tl-time{
+  font-size:32px;font-weight:800;letter-spacing:-1.5px;
+  line-height:1;font-variant-numeric:tabular-nums;
+  color:var(--text);
+}
+.tl-date{font-size:12px;color:var(--text-dim);font-weight:500;}
+.tl-actions{
+  display:flex;align-items:center;gap:8px;margin-top:4px;
+}
+.mini-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--glass);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text);transition:background .2s,border-color .2s,transform .1s;
+}
+.mini-btn:active{transform:scale(.92);}
+.mini-btn svg{width:18px;height:18px;stroke:currentColor;}
+
+/* ── TOP-RIGHT WIDGET: User Profile & Theme ── */
+.top-right-card{
+  position:absolute;top:20px;right:24px;z-index:10;
+  background:var(--bg2);
+  border:1.5px solid var(--border);
+  border-radius:20px;
+  padding:10px 16px;
+  box-shadow:0 12px 36px rgba(0,0,0,0.35);
+  backdrop-filter:blur(16px);
   display:flex;align-items:center;gap:12px;
-  max-width:320px;width:90%;z-index:40;
-  box-shadow:0 12px 40px rgba(0,0,0,.5);
-  transition:transform .45s cubic-bezier(.34,1.56,.64,1);
 }
-#notif-toast.show{transform:translateX(-50%) translateY(0);}
-.toast-icon{font-size:22px;}
-.toast-text .t-title{font-size:13px;font-weight:700;}
-.toast-text .t-body{font-size:12px;color:var(--text-dim);margin-top:2px;}
-
-/* ══════════════════════════════════════════
-   WEATHER BAR
-══════════════════════════════════════════ */
-.wx-bar{
-  height:var(--bar-h);flex-shrink:0;
-  display:flex;align-items:center;gap:14px;
-  padding:0 18px;
-  background:var(--bg2);border-top:1px solid var(--border);
+.u-badge-inner{
+  display:flex;align-items:center;gap:10px;
 }
-.wx-emoji{font-size:22px;}
-.wx-temp{font-size:20px;font-weight:800;letter-spacing:-1px;}
-.wx-sep{width:1px;height:20px;background:var(--border);}
-.wx-info{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--text-dim);}
-.wx-city{display:flex;align-items:center;gap:4px;}
-.wx-city svg{width:12px;height:12px;}
-.wx-details{display:flex;gap:10px;margin-left:auto;}
-.wx-tag{font-size:12px;color:var(--text-dim);}
+.avatar{
+  width:38px;height:38px;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:#fff;
+}
+.u-info{display:flex;flex-direction:column;}
+.u-name{font-size:14px;font-weight:700;line-height:1.2;}
+.u-car{font-size:11px;color:var(--text-dim);margin-top:2px;}
 
-/* ══════════════════════════════════════════
-   BOTTOM NAV
-══════════════════════════════════════════ */
-.bottom-nav{
-  height:var(--nav-h);flex-shrink:0;
-  background:var(--bg2);border-top:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-around;
-  padding:0 8px;position:relative;z-index:10;
+/* ── BOTTOM-LEFT WIDGET: Weather ── */
+.bottom-left-card{
+  position:absolute;bottom:20px;left:24px;z-index:10;
+  background:var(--bg2);
+  border:1.5px solid var(--border);
+  border-radius:20px;
+  padding:16px 20px;
+  min-width:260px;
+  box-shadow:0 12px 36px rgba(0,0,0,0.35);
+  backdrop-filter:blur(16px);
+  display:flex;flex-direction:column;gap:10px;
+}
+.wx-head{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.wx-city-badge{
+  font-size:12px;font-weight:700;color:var(--text-dim);
+  display:flex;align-items:center;gap:5px;
+}
+.wx-city-badge svg{width:13px;height:13px;}
+.wx-main-row{
+  display:flex;align-items:center;gap:12px;
+}
+.wx-emoji{font-size:36px;line-height:1;}
+.wx-temp-col{display:flex;flex-direction:column;}
+.wx-temp{font-size:26px;font-weight:800;letter-spacing:-1px;line-height:1;}
+.wx-desc{font-size:12px;color:var(--text-dim);margin-top:2px;}
+.wx-metrics{
+  display:flex;gap:12px;padding-top:8px;border-top:1px solid var(--border);
+  font-size:12px;color:var(--text-dim);
+}
+
+/* ── BOTTOM-RIGHT WIDGET: Navigation Bar & Controls ── */
+.bottom-right-bar{
+  position:absolute;bottom:20px;right:24px;z-index:10;
+  background:var(--bg2);
+  border:1.5px solid var(--border);
+  border-radius:22px;
+  padding:8px 12px;
+  box-shadow:0 12px 36px rgba(0,0,0,0.35);
+  backdrop-filter:blur(16px);
+  display:flex;align-items:center;gap:10px;
+}
+.bar-group{
+  display:flex;align-items:center;gap:8px;
+}
+.bar-divider{
+  width:1.5px;height:34px;background:var(--border);margin:0 2px;
 }
 .nb{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:8px 14px;border-radius:14px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  width:52px;height:52px;border-radius:14px;
+  background:var(--glass);border:1px solid var(--border);
   color:var(--text-dim);
-  transition:color .2s,background .2s,transform .1s;
+  transition:all .2s;
   position:relative;
 }
-.nb:active{transform:scale(.88);}
-.nb.on{color:var(--accent);}
-.nb svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-.nb span{font-size:10px;font-weight:600;}
+.nb:active{transform:scale(.9);}
+.nb:hover{background:var(--glass-h);color:var(--text);}
+.nb.on{color:var(--accent);border-color:var(--accent);}
+.nb svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+.nb span{font-size:9px;font-weight:700;}
 .nb-badge{
-  position:absolute;top:4px;right:6px;
+  position:absolute;top:2px;right:2px;
   background:var(--accent);color:#fff;
   border-radius:99px;min-width:16px;height:16px;
   font-size:10px;font-weight:800;
   display:flex;align-items:center;justify-content:center;
   padding:0 4px;
 }
+.bar-controls{
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg3);padding:6px;border-radius:16px;
+  border:1px solid var(--border);
+}
+.ctl-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--glass);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-dim);transition:all .2s;
+}
+.ctl-btn:active{transform:scale(.9);}
+.ctl-btn:hover{color:var(--text);background:var(--glass-h);}
+.ctl-btn.active{color:var(--blue);border-color:var(--blue);background:rgba(76,201,240,.15);}
+.ctl-btn svg{width:17px;height:17px;stroke:currentColor;}
+
+/* Responsive adjustments for mobile/narrow screens */
+@media (max-width: 768px) {
+  .top-left-card { top: 12px; left: 12px; min-width: 140px; padding: 10px 14px; }
+  .tl-time { font-size: 24px; }
+  .top-right-card { top: 12px; right: 12px; padding: 8px 12px; }
+  .bottom-left-card { bottom: 12px; left: 12px; min-width: 200px; padding: 12px 14px; }
+  .bottom-right-bar { bottom: 12px; right: 12px; padding: 6px 8px; gap: 6px; }
+  .nb { width: 44px; height: 44px; }
+  .nb svg { width: 18px; height: 18px; }
+  .nb span { display: none; }
+  #car-label { bottom: 80px; }
+}
 
 /* ══════════════════════════════════════════
-   PANELS
+   PANELS & MODALS
 ══════════════════════════════════════════ */
 .panel{
   position:fixed;z-index:100;
@@ -438,48 +439,19 @@ header{
 </head>
 <body>
 
-<!-- ══════ GATE (hidden — no auth for v2 preview) ══════ -->
-<div id="gate" style="display:none;"></div>
-
 <!-- ══════ OVERLAY ══════ -->
 <div id="overlay" onclick="closeAll()"></div>
 
 <!-- ══════ MAIN APP ══════ -->
 <div id="app">
 
-  <!-- HEADER -->
-  <header>
-    <div class="hdr-left">
-      <div id="v2-clock">00:00</div>
-      <div id="v2-date">Загрузка...</div>
-    </div>
-    <div class="hdr-right">
-      <!-- Phone -->
-      <button class="hdr-btn" onclick="openPanel('phone-panel')" title="Позвонить">
-        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .17h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
-      </button>
-      <!-- Theme -->
-      <button class="hdr-btn" id="theme-btn" onclick="toggleTheme()" title="Сменить тему">
-        <svg id="ico-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <svg id="ico-moon" class="hidden" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-      </button>
-      <!-- User badge -->
-      <div class="user-badge">
-        <div class="avatar" id="v2-avatar">?</div>
-        <div>
-          <div class="u-name" id="v2-uname">Гость</div>
-          <div class="u-car"  id="v2-ucar">—</div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- 3D CAR SCENE -->
+  <!-- ── FULLSCREEN 3D CAR CANVAS (Center) ── -->
   <div class="scene-wrap">
     <canvas id="car-canvas"></canvas>
     <div class="car-glow"></div>
     <div id="car-label">Changan</div>
-    <!-- Notification toast (inside scene) -->
+    
+    <!-- In-scene notification toast -->
     <div id="notif-toast">
       <div class="toast-icon">🔔</div>
       <div class="toast-text">
@@ -489,53 +461,101 @@ header{
     </div>
   </div>
 
-  <!-- WEATHER BAR -->
-  <div class="wx-bar">
-    <span class="wx-emoji" id="wx-emoji">🌤️</span>
-    <span class="wx-temp"  id="wx-temp">--°</span>
-    <div class="wx-sep"></div>
-    <div class="wx-info">
-      <span class="wx-city">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-        Ереван
-      </span>
-      <span id="wx-desc">Загрузка...</span>
-    </div>
-    <div class="wx-details">
-      <span class="wx-tag" id="wx-wind">💨 --</span>
-      <span class="wx-tag" id="wx-hum">💧 --%</span>
+  <!-- ── TOP-LEFT WIDGET (Clock & Dialer) ── -->
+  <div class="top-left-card">
+    <div class="tl-time" id="v2-clock">00:00</div>
+    <div class="tl-date" id="v2-date">Загрузка...</div>
+    <div class="tl-actions">
+      <button class="mini-btn" onclick="openPanel('phone-panel')" title="Позвонить">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .17h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
+      </button>
     </div>
   </div>
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <!-- Apps -->
-    <button class="nb" onclick="openSheet()" title="Приложения">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      <span>Приложения</span>
+  <!-- ── TOP-RIGHT WIDGET (Profile & Theme) ── -->
+  <div class="top-right-card">
+    <div class="u-badge-inner">
+      <div class="avatar" id="v2-avatar">?</div>
+      <div class="u-info">
+        <div class="u-name" id="v2-uname">Гость</div>
+        <div class="u-car"  id="v2-ucar">—</div>
+      </div>
+    </div>
+    <button class="mini-btn" id="theme-btn" onclick="toggleTheme()" title="Сменить тему">
+      <svg id="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg id="ico-moon" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
     </button>
-    <!-- Bluetooth -->
-    <button class="nb" id="bt-btn" onclick="toggleBT()" title="Bluetooth">
-      <svg viewBox="0 0 24 24"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
-      <span>Bluetooth</span>
-    </button>
-    <!-- Refresh -->
-    <button class="nb" onclick="location.reload()" title="Обновить">
-      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-      <span>Обновить</span>
-    </button>
-    <!-- Notifications -->
-    <button class="nb" id="notif-btn" onclick="openPanel('notif-panel')" title="Уведомления">
-      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
-      <span>Уведомления</span>
-      <div class="nb-badge hidden" id="notif-badge">0</div>
-    </button>
-    <!-- Settings -->
-    <button class="nb" onclick="openPanel('settings-panel')" title="Настройки">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-      <span>Настройки</span>
-    </button>
-  </nav>
+  </div>
+
+  <!-- ── BOTTOM-LEFT WIDGET (Weather) ── -->
+  <div class="bottom-left-card">
+    <div class="wx-head">
+      <div class="wx-city-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        Ереван
+      </div>
+    </div>
+    <div class="wx-main-row">
+      <div class="wx-emoji" id="wx-emoji">🌤️</div>
+      <div class="wx-temp-col">
+        <div class="wx-temp" id="wx-temp">--°</div>
+        <div class="wx-desc" id="wx-desc">Загрузка...</div>
+      </div>
+    </div>
+    <div class="wx-metrics">
+      <span id="wx-wind">💨 --</span>
+      <span id="wx-hum">💧 --%</span>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM-RIGHT WIDGET (Navigation Dock & Quick Controls) ── -->
+  <div class="bottom-right-bar">
+    <!-- Main App Icons -->
+    <div class="bar-group">
+      <!-- Apps Sheet -->
+      <button class="nb" onclick="openSheet()" title="Приложения">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Прил.</span>
+      </button>
+
+      <!-- Maps -->
+      <button class="nb" onclick="window.open('https://yandex.ru/maps/','_blank')" title="Карты">
+        <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <span>Карты</span>
+      </button>
+
+      <!-- Music -->
+      <button class="nb" onclick="window.open('https://music.yandex.ru/','_blank')" title="Музыка">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        <span>Музыка</span>
+      </button>
+
+      <!-- Notifications -->
+      <button class="nb" id="notif-btn" onclick="openPanel('notif-panel')" title="Уведомления">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span>Уведомл.</span>
+        <div class="nb-badge hidden" id="notif-badge">0</div>
+      </button>
+    </div>
+
+    <div class="bar-divider"></div>
+
+    <!-- Quick Controls Cluster -->
+    <div class="bar-controls">
+      <!-- Bluetooth -->
+      <button class="ctl-btn" id="bt-btn" onclick="toggleBT()" title="Bluetooth">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
+      </button>
+      <!-- Refresh -->
+      <button class="ctl-btn" onclick="location.reload()" title="Обновить">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      </button>
+      <!-- Settings -->
+      <button class="ctl-btn" onclick="openPanel('settings-panel')" title="Настройки">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
 
 </div><!-- /#app -->
 
