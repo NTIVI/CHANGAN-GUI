@@ -20,7 +20,7 @@ module.exports = async (req, res) => {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const action = (req.query.action || req.body?.action || '').trim();
+  const action = (req.query?.action || req.body?.action || '').trim();
   const clientIp = getClientIp(req);
 
   // 1. ADMIN LOGIN
