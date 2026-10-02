@@ -438,22 +438,8 @@ header{
 </head>
 <body>
 
-<!-- ══════ GATE ══════ -->
-<div id="gate">
-  <div class="gate-logo">🚗</div>
-  <div class="gate-brand">
-    <h1>Changan UI</h1>
-    <p>Новый интерфейс — тестовая версия</p>
-    <span class="gate-badge">v2 PREVIEW</span>
-  </div>
-  <div class="gate-form">
-    <input class="gate-input" id="gate-code" type="text"
-      placeholder="КОД" maxlength="8"
-      autocomplete="off" autocapitalize="characters" spellcheck="false"/>
-    <button class="gate-go" onclick="gateSubmit()">→</button>
-  </div>
-  <div class="gate-err" id="gate-err"></div>
-</div>
+<!-- ══════ GATE (hidden — no auth for v2 preview) ══════ -->
+<div id="gate" style="display:none;"></div>
 
 <!-- ══════ OVERLAY ══════ -->
 <div id="overlay" onclick="closeAll()"></div>
@@ -680,12 +666,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadWeather();
   setInterval(loadWeather, 10 * 60 * 1000);
 
-  document.getElementById('gate-code').addEventListener('keydown', e => {
-    if (e.key === 'Enter') gateSubmit();
-  });
-
-  // Try auto-login
-  if (V2.code) autoLogin();
+  // Open directly — no auth on v2 preview
+  openDirectly();
 });
 
 // ────────────────────────────────────────────
@@ -732,70 +714,33 @@ function tickClock() {
 }
 
 // ────────────────────────────────────────────
-// GATE / AUTH
+// OPEN DIRECTLY (No Auth / Preview Mode)
 // ────────────────────────────────────────────
-async function gateSubmit() {
-  const code = (document.getElementById('gate-code').value || '').trim().toUpperCase();
-  const err = document.getElementById('gate-err');
-  if (!code) { err.textContent = 'Введите код доступа'; return; }
-  err.textContent = 'Проверяем...';
-  try {
-    const r = await fetch('/api/status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
-    });
-    const d = await r.json();
-    if (d.active && d.user) {
-      V2.code = code;
-      V2.user = d.user;
-      localStorage.setItem('v2_code', code);
-      localStorage.setItem('v2_user', JSON.stringify(d.user));
-      enterApp();
-    } else if (!d.active) {
-      err.textContent = '❌ Аккаунт не активирован';
-    } else {
-      err.textContent = '❌ Код не найден';
-    }
-  } catch(e) {
-    err.textContent = '⚠️ Ошибка соединения';
-  }
-}
-
-async function autoLogin() {
-  try {
-    const r = await fetch('/api/status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: V2.code })
-    });
-    const d = await r.json();
-    if (d.active && d.user) {
-      V2.user = d.user;
-      localStorage.setItem('v2_user', JSON.stringify(d.user));
-      enterApp();
-    }
-  } catch(e) {}
-}
-
-function enterApp() {
-  // Fade gate out
+function openDirectly() {
   const gate = document.getElementById('gate');
-  gate.style.transition = 'opacity .4s, transform .4s';
-  gate.style.opacity = '0';
-  gate.style.transform = 'scale(.96)';
-  setTimeout(() => { gate.style.display = 'none'; }, 400);
+  if (gate) gate.style.display = 'none';
 
-  // Show app
   const app = document.getElementById('app');
-  app.classList.add('visible');
-  app.style.opacity = '0';
-  setTimeout(() => {
-    app.style.transition = 'opacity .5s';
+  if (app) {
+    app.classList.add('visible');
     app.style.opacity = '1';
-  }, 100);
+  }
 
-  setupProfile(V2.user);
+  // Load user from storage or mock default test user
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem('v2_user'));
+  } catch(e) {}
+
+  if (!user) {
+    user = {
+      firstName: 'Тестовый',
+      lastName: 'Пользователь',
+      carModel: 'UNI-K'
+    };
+  }
+  V2.user = user;
+  setupProfile(user);
 
   // Init 3D after DOM is painted
   requestAnimationFrame(() => {
@@ -1350,8 +1295,7 @@ function startUserSync() {
         body: JSON.stringify({ code: V2.code })
       });
       const d = await r.json();
-      if (!d.active) { lockOut(); return; }
-      if (d.user) {
+      if (d && d.active && d.user) {
         const prev = V2.user || {};
         if (
           d.user.firstName !== prev.firstName ||
@@ -1368,19 +1312,7 @@ function startUserSync() {
 }
 
 function lockOut() {
-  document.getElementById('app').classList.remove('visible');
-  const gate = document.getElementById('gate');
-  gate.style.display = '';
-  gate.style.opacity = '1';
-  gate.style.transform = '';
-  document.getElementById('gate-err').textContent = 'Сессия завершена. Введите код снова.';
-  localStorage.removeItem('v2_code');
-  localStorage.removeItem('v2_user');
-  V2.code = '';
-  V2.user = null;
-  if (V2.raf) cancelAnimationFrame(V2.raf);
-  clearInterval(V2.notifTimer);
-  clearInterval(V2.syncTimer);
+  // No lockout on test page
 }
 
 // ────────────────────────────────────────────
