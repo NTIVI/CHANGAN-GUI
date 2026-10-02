@@ -81,39 +81,129 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   display:block;
 }
 
-/* ── Fullscreen Center Car Display (Photo with Shadows) ── */
-.car-stage{
+/* ── Fullscreen Center Clock Stage (Rotating Yerevan Clock on Dark Background) ── */
+.clock-stage{
   position:absolute;inset:0;z-index:1;
   display:flex;align-items:center;justify-content:center;
+  flex-direction:column;
   pointer-events:none;
 }
-.car-glow{
-  position:absolute;width:65vw;max-width:700px;height:240px;
+.clock-ambient-glow{
+  position:absolute;width:420px;height:420px;
   border-radius:50%;
-  background:radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 70%);
-  bottom:20%;left:50%;transform:translateX(-50%);
-  pointer-events:none;transition:all .5s ease;
+  background:radial-gradient(circle, var(--accent-glow) 0%, rgba(255,107,0,0.04) 50%, transparent 75%);
+  top:50%;left:50%;transform:translate(-50%, -50%);
+  pointer-events:none;
+  animation:ambientPulse 4s ease-in-out infinite alternate;
 }
-.car-photo-wrap{
+@keyframes ambientPulse {
+  0% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+}
+
+.center-clock-container{
   position:relative;
-  width:min(720px, 78vw);
-  max-height:60vh;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:min(380px, 72vw);
+  height:min(380px, 72vw);
+  display:flex;align-items:center;justify-content:center;
   pointer-events:auto;
 }
-.car-img{
-  width:100%;height:auto;max-height:48vh;
-  object-fit:contain;
-  filter:drop-shadow(0 20px 35px rgba(0,0,0,0.65));
-  transition:transform .4s ease, filter .4s ease;
+
+/* Outer Rotating Rings */
+.clock-outer-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:2px dashed rgba(255,107,0,0.35);
+  box-shadow:0 0 40px rgba(255,107,0,0.15), inset 0 0 30px rgba(255,107,0,0.08);
+  animation:rotateSlow 60s linear infinite;
 }
-.car-img:hover{
-  transform:scale(1.02);
+.clock-inner-ring{
+  position:absolute;inset:18px;border-radius:50%;
+  border:1.5px solid var(--border);
+  border-top-color:var(--accent);
+  border-bottom-color:var(--accent);
+  animation:rotateReverse 40s linear infinite;
 }
+.clock-glow-disc{
+  position:absolute;inset:32px;border-radius:50%;
+  background:radial-gradient(circle at 40% 40%, var(--bg3) 0%, var(--bg2) 100%);
+  border:1.5px solid var(--border-h);
+  box-shadow:0 16px 50px rgba(0,0,0,0.6), inset 0 2px 10px rgba(255,255,255,0.06);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+
+@keyframes rotateSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes rotateReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+/* Analog Hands */
+.clock-hands-wrap{
+  position:absolute;inset:0;border-radius:50%;pointer-events:none;
+}
+.hand{
+  position:absolute;bottom:50%;left:50%;
+  transform-origin:bottom center;
+  border-radius:6px;
+  transition:transform 0.05s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+}
+.hand.hour-hand{
+  width:6px;height:70px;margin-left:-3px;
+  background:var(--text);
+  box-shadow:0 0 10px rgba(0,0,0,0.5);
+}
+.hand.minute-hand{
+  width:4px;height:105px;margin-left:-2px;
+  background:var(--accent2);
+  box-shadow:0 0 12px var(--accent-glow);
+}
+.hand.second-hand{
+  width:2px;height:120px;margin-left:-1px;
+  background:var(--accent);
+  box-shadow:0 0 15px var(--accent);
+}
+.hand.second-hand::after{
+  content:'';position:absolute;top:-6px;left:-4px;width:10px;height:10px;
+  background:var(--accent);border-radius:50%;box-shadow:0 0 8px var(--accent);
+}
+.clock-center-pin{
+  position:absolute;top:50%;left:50%;
+  width:14px;height:14px;margin-top:-7px;margin-left:-7px;
+  background:var(--accent);border:3px solid var(--bg2);
+  border-radius:50%;z-index:10;
+  box-shadow:0 0 12px var(--accent);
+}
+
+/* Center Digital Time & Yerevan Info */
+.clock-center-content{
+  position:relative;z-index:5;
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;gap:3px;
+  margin-top:65px;
+}
+.center-digi-time{
+  font-size:32px;font-weight:900;letter-spacing:-1px;
+  color:var(--text);font-variant-numeric:tabular-nums;
+  text-shadow:0 4px 18px rgba(0,0,0,0.5);
+  line-height:1;
+}
+.center-digi-sec{
+  font-size:12px;font-weight:700;color:var(--accent);
+  letter-spacing:1px;
+}
+.center-city-label{
+  font-size:11px;font-weight:800;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:1.5px;
+  display:flex;align-items:center;gap:4px;margin-top:2px;
+}
+
 #car-label{
-  position:absolute;bottom:-38px;left:50%;transform:translateX(-50%);
+  margin-top:24px;
   background:var(--bg2);border:1.5px solid var(--border);
-  border-radius:99px;padding:6px 20px;
+  border-radius:99px;padding:6px 22px;
   font-size:13px;font-weight:700;color:var(--text);
   white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.3);
   backdrop-filter:blur(10px);
@@ -500,13 +590,41 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 <!-- ══════ MAIN APP ══════ -->
 <div id="app">
 
-  <!-- ── CENTER CAR STAGE (Realistic Car Photo with Theme Adaptation) ── -->
-  <div class="car-stage">
-    <div class="car-glow" id="car-glow"></div>
-    <div class="car-photo-wrap">
-      <img id="car-main-img" class="car-img" src="" alt="Changan Car" />
-      <div id="car-label">Changan UNI-K</div>
+  <!-- ── CENTER CLOCK STAGE (Rotating Yerevan Clock on Dark Background) ── -->
+  <div class="clock-stage">
+    <div class="clock-ambient-glow"></div>
+    
+    <div class="center-clock-container">
+      <!-- Rotating outer dashed orbit ring -->
+      <div class="clock-outer-ring"></div>
+      
+      <!-- Rotating inner accented ring -->
+      <div class="clock-inner-ring"></div>
+      
+      <!-- Glow disc background -->
+      <div class="clock-glow-disc">
+        <!-- Analog Hands -->
+        <div class="clock-hands-wrap">
+          <div class="hand hour-hand" id="hour-hand"></div>
+          <div class="hand minute-hand" id="minute-hand"></div>
+          <div class="hand second-hand" id="second-hand"></div>
+          <div class="clock-center-pin"></div>
+        </div>
+
+        <!-- Center Digital Time & Yerevan Info -->
+        <div class="clock-center-content">
+          <div class="center-digi-time" id="center-clock-time">00:00</div>
+          <div class="center-digi-sec" id="center-clock-sec">:00</div>
+          <div class="center-city-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            ЕРЕВАН
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Active Car / Portal Badge -->
+    <div id="car-label">Changan UNI-K</div>
   </div>
 
   <!-- ── TOP-LEFT WIDGET (Clock & Dialer) ── -->
@@ -915,17 +1033,54 @@ function toggleTheme() {
 }
 
 // ────────────────────────────────────────────
-// CLOCK
+// CLOCK (Yerevan Time & Rotating Center Hands)
 // ────────────────────────────────────────────
 function tickClock() {
   const tz = 'Asia/Yerevan';
   const now = new Date();
-  const t = now.toLocaleTimeString('ru-RU', { timeZone: tz, hour: '2-digit', minute: '2-digit' });
-  const d = now.toLocaleDateString('ru-RU', { timeZone: tz, weekday: 'long', day: 'numeric', month: 'long' });
+  
+  // Format Yerevan Date/Time parts
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false
+  });
+  const parts = formatter.formatToParts(now);
+  let h = 0, m = 0, s = 0;
+  parts.forEach(p => {
+    if (p.type === 'hour') h = parseInt(p.value);
+    if (p.type === 'minute') m = parseInt(p.value);
+    if (p.type === 'second') s = parseInt(p.value);
+  });
+
+  const timeStr = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  const secStr = ':' + String(s).padStart(2, '0');
+  const dStr = now.toLocaleDateString('ru-RU', { timeZone: tz, weekday: 'long', day: 'numeric', month: 'long' });
+
+  // Top-left small widget
   const cl = document.getElementById('v2-clock');
   const dl = document.getElementById('v2-date');
-  if (cl) cl.textContent = t;
-  if (dl) dl.textContent = d[0].toUpperCase() + d.slice(1);
+  if (cl) cl.textContent = timeStr;
+  if (dl) dl.textContent = dStr[0].toUpperCase() + dStr.slice(1);
+
+  // Center Big Rotating Clock
+  const centerTime = document.getElementById('center-clock-time');
+  const centerSec = document.getElementById('center-clock-sec');
+  if (centerTime) centerTime.textContent = timeStr;
+  if (centerSec) centerSec.textContent = secStr;
+
+  // Degrees for hands
+  const secDeg = (s / 60) * 360;
+  const minDeg = ((m + s / 60) / 60) * 360;
+  const hrDeg = (((h % 12) + m / 60 + s / 3600) / 12) * 360;
+
+  const secHand = document.getElementById('second-hand');
+  const minHand = document.getElementById('minute-hand');
+  const hrHand = document.getElementById('hour-hand');
+
+  if (secHand) secHand.style.transform = `rotate(${secDeg}deg)`;
+  if (minHand) minHand.style.transform = `rotate(${minDeg}deg)`;
+  if (hrHand) hrHand.style.transform = `rotate(${hrDeg}deg)`;
 }
 
 // ────────────────────────────────────────────
