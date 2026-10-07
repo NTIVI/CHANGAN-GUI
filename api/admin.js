@@ -1,6 +1,7 @@
-// api/admin.js - Admin Panel Management API with Brute-Force & DDoS Protection (Neon PostgreSQL)
+// api/admin.js - Admin Panel Management API with Gist DB
 const {
-  queryNeon,
+  getDb,
+  saveDb,
   getClientIp,
   checkRateLimit,
   recordFailedAttempt,
@@ -23,34 +24,46 @@ module.exports = async (req, res) => {
   const action = (req.query?.action || req.body?.action || '').trim();
   const clientIp = getClientIp(req);
 
-  // 1. ADMIN LOGIN
+  // 1. ADMIN LOGIN ACTION
   if (action === 'login') {
     if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Метод не разрешен' });
 
-    const rate = checkRateLimit(clientIp, 5, 5 * 60 * 1000);
+    // Check brute force lockout
+    const rate = checkRateLimit(clientIp, 5, 5 * 60 * 1000); // 5 attempts -> 5 min lock
     if (!rate.allowed) {
       return res.status(429).json({
         success: false,
-        error: `Доступ временно заблокирован. Повторите через ${rate.remainingSec} сек.`
+        error: `Доступ временно заблокирован из-за множества неверных попыток. Повторите через ${rate.remainingSec} сек.`
       });
     }
 
     let body = req.body;
-    if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) {} }
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch (e) {}
+    }
     body = body || {};
 
     const login = String(body.login || '').trim();
     const password = String(body.password || '').trim();
 
+    // Small artificial delay to slow down automated brute-force attacks
     await new Promise(r => setTimeout(r, 400));
 
     if (login === ADMIN_LOGIN && password === ADMIN_PASS) {
       resetFailedAttempts(clientIp);
       const { token, expiresAt } = createAdminToken(login);
-      return res.status(200).json({ success: true, token, expiresAt, message: 'Успешный вход в панель администратора' });
+      return res.status(200).json({
+        success: true,
+        token,
+        expiresAt,
+        message: 'Успешный вход в панель администратора'
+      });
     } else {
       recordFailedAttempt(clientIp);
-      return res.status(401).json({ success: false, error: 'Неверный логин или пароль администратора' });
+      return res.status(401).json({
+        success: false,
+        error: 'Неверный логин или пароль администратора'
+      });
     }
   }
 
@@ -59,46 +72,28 @@ module.exports = async (req, res) => {
   const token = authHeader.replace(/^Bearer\s+/i, '').trim();
 
   if (!verifyAdminToken(token)) {
-    return res.status(401).json({ success: false, error: 'Сессия истекла или токен недействителен. Войдите заново.' });
+    return res.status(401).json({
+      success: false,
+      error: 'Сессия истекла или токен недействителен. Войдите заново.'
+    });
   }
 
-  // --- GET DATA ---
+  // --- GET DATA (Users, Requests, Stats) ---
   if (action === 'data' || (req.method === 'GET' && !action)) {
     try {
-      const users = await queryNeon(`SELECT * FROM users ORDER BY created_at DESC`);
-      const requests = await queryNeon(`SELECT * FROM requests ORDER BY created_at DESC`);
-
-      // Normalize field names for frontend (snake_case -> camelCase)
-      const normalizeUser = u => ({
-        code: u.code,
-        firstName: u.first_name,
-        lastName: u.last_name,
-        carModel: u.car_model,
-        phone: u.phone || '',
-        active: u.active,
-        activatedAt: u.activated_at,
-        createdAt: u.created_at
-      });
-      const normalizeReq = r => ({
-        id: r.id,
-        code: r.code,
-        firstName: r.first_name,
-        lastName: r.last_name,
-        phone: r.phone || '',
-        carModel: r.car_model || '',
-        createdAt: r.created_at,
-        updatedAt: r.updated_at
-      });
+      const db = await getDb(true);
+      const users = db.users || [];
+      const requests = db.requests || [];
 
       return res.status(200).json({
         success: true,
         stats: {
           totalUsers: users.length,
-          activeUsers: users.filter(u => u.active).length,
+          activeUsers: users.filter(u => u.active !== false).length,
           pendingRequests: requests.length
         },
-        users: users.map(normalizeUser),
-        requests: requests.map(normalizeReq)
+        users,
+        requests
       });
     } catch (err) {
       console.error('admin data error:', err);
@@ -108,10 +103,12 @@ module.exports = async (req, res) => {
 
   // Parse body for write actions
   let body = req.body;
-  if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) {} }
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch (e) {}
+  }
   body = body || {};
 
-  // --- ACTIVATE USER ---
+  // --- ACTIVATE USER (from call or from request) ---
   if (action === 'activate') {
     const code = String(body.code || '').trim().toUpperCase();
     const firstName = String(body.firstName || '').trim();
@@ -119,30 +116,45 @@ module.exports = async (req, res) => {
     const carModel = String(body.carModel || 'Changan UNI-K').trim();
     const phone = String(body.phone || '').trim();
 
-    if (!code || code.length > 16) return res.status(400).json({ success: false, error: 'Код устройства обязателен' });
-    if (!firstName || !lastName) return res.status(400).json({ success: false, error: 'Укажите имя и фамилию' });
+    if (!code || code.length > 16) {
+      return res.status(400).json({ success: false, error: 'Код устройства обязателен' });
+    }
+    if (!firstName || !lastName) {
+      return res.status(400).json({ success: false, error: 'Укажите имя и фамилию' });
+    }
 
     try {
-      await queryNeon(
-        `INSERT INTO users (code, first_name, last_name, car_model, phone, active, activated_at, created_at)
-         VALUES ($1, $2, $3, $4, $5, TRUE, NOW(), NOW())
-         ON CONFLICT (code) DO UPDATE SET
-           first_name   = EXCLUDED.first_name,
-           last_name    = EXCLUDED.last_name,
-           car_model    = EXCLUDED.car_model,
-           phone        = EXCLUDED.phone,
-           active       = TRUE,
-           activated_at = NOW()`,
-        [code, firstName, lastName, carModel, phone]
-      );
+      const db = await getDb(true);
+      db.users = db.users || [];
+      db.requests = db.requests || [];
 
-      // Remove from pending requests
-      await queryNeon(`DELETE FROM requests WHERE UPPER(code) = $1`, [code]);
+      // Check if user already exists
+      const existingIdx = db.users.findIndex(u => u.code.toUpperCase() === code);
+      const userData = {
+        code,
+        firstName,
+        lastName,
+        carModel,
+        phone,
+        active: true,
+        activatedAt: new Date().toISOString()
+      };
+
+      if (existingIdx >= 0) {
+        db.users[existingIdx] = { ...db.users[existingIdx], ...userData };
+      } else {
+        db.users.unshift(userData);
+      }
+
+      // Remove from pending requests if present
+      db.requests = db.requests.filter(r => r.code.toUpperCase() !== code);
+
+      await saveDb(db);
 
       return res.status(200).json({
         success: true,
         message: `Пользователь ${firstName} ${lastName} (${carModel}) успешно активирован!`,
-        user: { code, firstName, lastName, carModel, phone, active: true }
+        user: userData
       });
     } catch (err) {
       console.error('admin activate error:', err);
@@ -159,24 +171,33 @@ module.exports = async (req, res) => {
     const phone = String(body.phone || '').trim();
     const active = body.active !== undefined ? Boolean(body.active) : true;
 
-    if (!code) return res.status(400).json({ success: false, error: 'Код пользователя не указан' });
+    if (!code) {
+      return res.status(400).json({ success: false, error: 'Код пользователя не указан' });
+    }
 
     try {
-      const result = await queryNeon(
-        `UPDATE users SET
-           first_name = COALESCE(NULLIF($2,''), first_name),
-           last_name  = COALESCE(NULLIF($3,''), last_name),
-           car_model  = COALESCE(NULLIF($4,''), car_model),
-           phone      = $5,
-           active     = $6
-         WHERE UPPER(code) = $1
-         RETURNING *`,
-        [code, firstName, lastName, carModel, phone, active]
-      );
+      const db = await getDb(true);
+      db.users = db.users || [];
+      const user = db.users.find(u => u.code.toUpperCase() === code);
 
-      if (result.length === 0) return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+      if (!user) {
+        return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+      }
 
-      return res.status(200).json({ success: true, message: 'Данные пользователя обновлены', user: result[0] });
+      if (firstName) user.firstName = firstName;
+      if (lastName) user.lastName = lastName;
+      if (carModel) user.carModel = carModel;
+      if (phone !== undefined) user.phone = phone;
+      user.active = active;
+      user.updatedAt = new Date().toISOString();
+
+      await saveDb(db);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Данные пользователя обновлены',
+        user
+      });
     } catch (err) {
       console.error('admin edit error:', err);
       return res.status(500).json({ success: false, error: 'Ошибка редактирования' });
@@ -186,16 +207,21 @@ module.exports = async (req, res) => {
   // --- DELETE USER ---
   if (action === 'delete') {
     const code = String(body.code || '').trim().toUpperCase();
-    if (!code) return res.status(400).json({ success: false, error: 'Код не указан' });
+    if (!code) {
+      return res.status(400).json({ success: false, error: 'Код не указан' });
+    }
 
     try {
-      const result = await queryNeon(
-        `DELETE FROM users WHERE UPPER(code) = $1 RETURNING code`,
-        [code]
-      );
+      const db = await getDb(true);
+      db.users = db.users || [];
+      const initialCount = db.users.length;
+      db.users = db.users.filter(u => u.code.toUpperCase() !== code);
 
-      if (result.length === 0) return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+      if (db.users.length === initialCount) {
+        return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+      }
 
+      await saveDb(db);
       return res.status(200).json({ success: true, message: 'Пользователь удален' });
     } catch (err) {
       console.error('admin delete error:', err);
@@ -209,11 +235,15 @@ module.exports = async (req, res) => {
     const id = String(body.id || '').trim();
 
     try {
-      if (id) {
-        await queryNeon(`DELETE FROM requests WHERE id = $1`, [id]);
-      } else if (code) {
-        await queryNeon(`DELETE FROM requests WHERE UPPER(code) = $1`, [code]);
-      }
+      const db = await getDb(true);
+      db.requests = db.requests || [];
+      db.requests = db.requests.filter(r => {
+        if (id && r.id === id) return false;
+        if (code && r.code.toUpperCase() === code) return false;
+        return true;
+      });
+
+      await saveDb(db);
       return res.status(200).json({ success: true, message: 'Заявка удалена' });
     } catch (err) {
       console.error('admin delete-request error:', err);

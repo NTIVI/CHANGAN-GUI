@@ -1,5 +1,5 @@
-// api/status.js - Check activation status of a device code (Neon PostgreSQL)
-const { queryNeon } = require('./_db');
+// api/status.js - Check activation status of a device code
+const { getDb } = require('./_db');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,24 +15,19 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const rows = await queryNeon(
-      `SELECT code, first_name, last_name, car_model, activated_at
-       FROM users
-       WHERE UPPER(code) = $1 AND active = TRUE`,
-      [code]
-    );
+    const db = await getDb(true);
+    const user = (db.users || []).find(u => (u.code || '').trim().toUpperCase() === code);
 
-    if (rows.length > 0) {
-      const u = rows[0];
+    if (user && user.active !== false) {
       return res.status(200).json({
         success: true,
         active: true,
         user: {
-          code: u.code,
-          firstName: u.first_name || '',
-          lastName: u.last_name || '',
-          carModel: u.car_model || 'Changan',
-          activatedAt: u.activated_at || null
+          code: user.code,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          carModel: user.carModel || 'Changan',
+          activatedAt: user.activatedAt || null
         }
       });
     }

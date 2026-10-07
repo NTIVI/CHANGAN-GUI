@@ -1,10 +1,5 @@
-// api/request.js - Submit support access request (Neon PostgreSQL)
-const {
-  queryNeon,
-  getClientIp,
-  checkRateLimit,
-  recordFailedAttempt
-} = require('./_db');
+// api/request.js - Submit support access request
+const { getDb, saveDb, getClientIp, checkRateLimit, recordFailedAttempt } = require('./_db');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,7 +10,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Метод не разрешен' });
 
   const clientIp = getClientIp(req);
-  const rate = checkRateLimit(clientIp, 10, 10 * 60 * 1000);
+  const rate = checkRateLimit(clientIp, 10, 10 * 60 * 1000); // 10 attempts per 10 mins
   if (!rate.allowed) {
     return res.status(429).json({
       success: false,
@@ -43,12 +38,11 @@ module.exports = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Заполните все поля: имя, фамилию и телефон' });
     }
 
+    const db = await getDb(true);
+
     // Check if user is already activated
-    const activeRows = await queryNeon(
-      `SELECT code FROM users WHERE UPPER(code) = $1 AND active = TRUE`,
-      [code]
-    );
-    if (activeRows.length > 0) {
+    const existingUser = (db.users || []).find(u => u.code.toUpperCase() === code);
+    if (existingUser && existingUser.active !== false) {
       return res.status(200).json({
         success: true,
         alreadyActive: true,
@@ -56,19 +50,42 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Upsert request (insert or update on conflict)
-    const reqId = 'req_' + Date.now().toString(36);
-    await queryNeon(
-      `INSERT INTO requests (id, code, first_name, last_name, phone, car_model, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-       ON CONFLICT (code) DO UPDATE SET
-         first_name = EXCLUDED.first_name,
-         last_name  = EXCLUDED.last_name,
-         phone      = EXCLUDED.phone,
-         car_model  = EXCLUDED.car_model,
-         updated_at = NOW()`,
-      [reqId, code, firstName, lastName, phone, carModel]
-    );
+    // Check if request already pending
+    const existingReq = (db.requests || []).find(r => r.code.toUpperCase() === code);
+    if (existingReq) {
+      // Update existing request
+      existingReq.firstName = firstName;
+      existingReq.lastName = lastName;
+      existingReq.phone = phone;
+      existingReq.carModel = carModel;
+      existingReq.updatedAt = new Date().toISOString();
+      await saveDb(db);
+      return res.status(200).json({
+        success: true,
+        message: 'Заявка уже была отправлена, данные обновлены. Ожидайте подтверждения.'
+      });
+    }
+
+    // Add new request
+    const newRequest = {
+      id: 'req_' + Date.now().toString(36),
+      code,
+      firstName,
+      lastName,
+      phone,
+      carModel,
+      createdAt: new Date().toISOString()
+    };
+
+    db.requests = db.requests || [];
+    db.requests.unshift(newRequest);
+
+    // Keep max 500 requests to avoid unbounded growth
+    if (db.requests.length > 500) {
+      db.requests = db.requests.slice(0, 500);
+    }
+
+    await saveDb(db);
 
     return res.status(200).json({
       success: true,
